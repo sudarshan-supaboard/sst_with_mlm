@@ -43,6 +43,6 @@ tokenized_datasets.set_format(type='torch',
 
 if __name__ == '__main__':
     from pprint import pprint
-    pprint(model)
-    model.print_trainable_parameters()
+    # pprint(model)
+    # model.print_trainable_parameters()
     

@@ -28,13 +28,12 @@ class CustomTrainer(Trainer):
 
       device = model.module.device
       
-      pprint(inputs)
-      labels = inputs.pop("label").to(device)
+      labels = inputs.pop("labels").to(device)
 
       # inputs
       inputs["input_ids"] = inputs["input_ids"].to(device)
       inputs["attention_mask"] = inputs["attention_mask"].to(device)
-
+    
       mask_token_id = tokenizer.mask_token_id
       outputs = model(**inputs)
       logits = outputs.logits
