@@ -27,6 +27,8 @@ class CustomTrainer(Trainer):
   def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
 
       device = model.module.device
+      
+      pprint(inputs)
       labels = inputs.pop("label").to(device)
 
       # inputs
