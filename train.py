@@ -39,6 +39,7 @@ class CustomTrainer(Trainer):
 
       # get mask_token_ids of all inputs
       mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)[1]
+      print(f'logits.shape: {logits.shape}')
       logits = logits[0, mask_token_indices, :]
 
       # calculate loss
@@ -53,6 +54,8 @@ f1 = evaluate.load("f1")
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
+    print(logits)
+    print(labels)
     predictions = np.argmax(logits, axis=1)
 
     return {
@@ -63,18 +66,19 @@ def compute_metrics(eval_pred):
 
 training_args = TrainingArguments(
     output_dir=Config.OUTPUT_DIR,          # output directory
-    num_train_epochs=3,              # total number of training epochs
-    per_device_train_batch_size=4,   # batch size per device during training
-    gradient_accumulation_steps=4,
+    num_train_epochs=1,              # total number of training epochs
+    per_device_train_batch_size=8,   # batch size per device during training
+    gradient_accumulation_steps=2,
     per_device_eval_batch_size=64,   # batch size for evaluation
     warmup_ratio=0.1,                # number of warmup steps for learning rate scheduler
+    learning_rate=5e-5,
     weight_decay=0.01,               # strength of weight decay
     logging_dir='./logs',            # directory for storing logs
-    logging_steps=10,
+    logging_steps=1,
     eval_strategy="steps",
-    eval_steps=100,
     save_strategy="steps",
-    save_steps = 100,
+    eval_steps=10,
+    save_steps = 10,
     save_total_limit=4,
     load_best_model_at_end=True,
     metric_for_best_model="f1",
