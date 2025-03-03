@@ -31,7 +31,7 @@ def tokenize_function(examples):
 
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
-    batch_inputs["label"] = tokenizer.convert_tokens_to_ids(examples["emotion"])
+    batch_inputs["label"] = tokenizer.convert_tokens_to_ids(examples["label"])
     return batch_inputs
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
