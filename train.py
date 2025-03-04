@@ -34,6 +34,8 @@ class CustomTrainer(Trainer):
         labels = inputs.pop("labels").to(device)
 
         # inputs
+        
+        print(f"input_ids.shape: {inputs['input_ids'].shape}", )
         inputs["input_ids"] = inputs["input_ids"].to(device)
         inputs["attention_mask"] = inputs["attention_mask"].to(device)
 
@@ -42,11 +44,14 @@ class CustomTrainer(Trainer):
         logits = outputs.logits
 
         # get mask_token_ids of all inputs
-        mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)[1]
-        logits = logits[:, mask_token_indices, :]
+        mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
+        print(f'mask token indices shape: {len(mask_token_indices)}, {mask_token_indices[0].shape}, {mask_token_indices[1].shape}')
+        mask_token_indices = mask_token_indices[1]
+        logits = logits[0, mask_token_indices, :]
 
         print(logits.shape)
         print(labels.shape)
+        
         # calculate loss
         loss = F.cross_entropy(logits, labels)
 
