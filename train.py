@@ -55,8 +55,7 @@ class CustomTrainer(Trainer):
         
         loss = loss.mean()
         
-        get_memory_usage(0)
-        get_memory_usage(1)
+        get_memory_usage()
         return (loss, outputs) if return_outputs else loss
 
 
