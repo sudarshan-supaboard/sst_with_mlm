@@ -51,12 +51,18 @@ class CustomTrainer(Trainer):
         device = logits.device
         labels = labels.to(device)
         
+        print(f'logits device: {device}')
+        
         # get mask_token_ids of all inputs
         mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
         
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
         loss = criterion(logits, labels)
+        
+
+        print(loss)
+        
         loss = loss.mean()
         return (loss, outputs) if return_outputs else loss
 
