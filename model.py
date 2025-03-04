@@ -5,8 +5,7 @@ from config import Config
 from peft import LoraConfig, get_peft_model # type: ignore
 from preprocess import dataset
 
-model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH, 
-                                        device_map="auto")
+model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
 tokenizer = BertTokenizer.from_pretrained(Config.MODEL_PATH,
                                           do_lower_case=True,
                                           strip_accents=True)
