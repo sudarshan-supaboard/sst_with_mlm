@@ -30,8 +30,6 @@ class CustomTrainer(Trainer):
     ):
 
         device = model.module.device
-        print(f"inputs.shape: {inputs['input_ids'].shape}")
-        print(f"inputs_labels.shape: {inputs['labels'].shape}")
         
         labels = inputs.pop("labels").to(device)
 
@@ -45,8 +43,7 @@ class CustomTrainer(Trainer):
 
         # get mask_token_ids of all inputs
         mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)[1]
-        print(f"logits.shape: {logits.shape}")
-        logits = logits[0, mask_token_indices, :]
+        logits = logits[:, mask_token_indices, :]
 
         # calculate loss
         loss = F.cross_entropy(logits, labels)
