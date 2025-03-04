@@ -64,6 +64,9 @@ class CustomTrainer(Trainer):
         print(loss)
         
         loss = loss.mean()
+        
+        print(loss)
+        
         return (loss, outputs) if return_outputs else loss
 
 
