@@ -26,7 +26,7 @@ wandb_login(key=wandb_key)
 
 class CustomTrainer(Trainer):
     def compute_loss(
-        self, model, inputs, return_outputs=False
+        self, model, inputs, return_outputs=False, num_items_in_batch=None
     ):
         
         if isinstance(model, torch.nn.DataParallel):
