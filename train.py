@@ -28,6 +28,8 @@ class CustomTrainer(Trainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ):
+        print(f'num_items_in_batch: {num_items_in_batch}')
+        criterion = torch.nn.SmoothL1Loss()  # Alternative to CrossEntropyLoss
 
         if isinstance(model, torch.nn.DataParallel):
             print(f"devices: {model.device_ids}")
@@ -53,9 +55,8 @@ class CustomTrainer(Trainer):
         
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
-        loss = F.cross_entropy(logits, labels)
-        
-        loss = loss.mean()
+        # loss = F.cross_entropy(logits, labels)
+        loss = criterion(logits, labels)
         
         get_memory_usage()
        
@@ -102,6 +103,7 @@ training_args = TrainingArguments(
     report_to="wandb",
     # bf16=True
     optim="adamw_bnb_8bit",
+    ddp_find_unused_parameters=False if torch.cuda.device_count() > 1 else None,
 )
 
 es_callback = EarlyStoppingTrainingLossCallback()
