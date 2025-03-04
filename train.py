@@ -29,15 +29,16 @@ class CustomTrainer(Trainer):
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ):
         print(f'num_items_in_batch: {num_items_in_batch}')
-        criterion = torch.nn.SmoothL1Loss()  # Alternative to CrossEntropyLoss
 
         if isinstance(model, torch.nn.DataParallel):
             print(f"devices: {model.device_ids}")
             model = model.module
             
-            
+
         
         device = model.device
+        
+        criterion = torch.nn.CrossEntropyLoss().to(device)  # Alternative to CrossEntropyLoss
         
         inputs = {k: v.to(device) for k, v in inputs.items()}
         labels = inputs.pop("labels")
