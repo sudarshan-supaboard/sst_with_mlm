@@ -11,6 +11,15 @@ def clear_cache():
   torch.cuda.empty_cache()  # Free unused memory
   gc.collect()  # Run Python garbage collector
 
+def get_memory_usage(gpu_id = 0):
+
+    total_memory = torch.cuda.get_device_properties(gpu_id).total_memory  # Total GPU memory
+    allocated_memory = torch.cuda.memory_allocated(gpu_id)  # Memory currently allocated by PyTorch
+    cached_memory = torch.cuda.memory_reserved(gpu_id)  # Memory reserved by the caching allocator
+    
+    print(f"Total GPU Memory [{gpu_id}]: {total_memory / 1024**3:.2f} GB")
+    print(f"Allocated Memory [{gpu_id}]: {allocated_memory / 1024**3:.2f} GB")
+    print(f"Cached Memory [{gpu_id}]: {cached_memory / 1024**3:.2f} GB")
 
 
 def upload_checkpoints():

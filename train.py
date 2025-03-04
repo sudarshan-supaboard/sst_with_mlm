@@ -12,7 +12,7 @@ from model import tokenizer, model, tokenized_datasets
 from dotenv import load_dotenv
 from pprint import pprint
 from config import Config
-from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback
+from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, get_memory_usage
 
 load_dotenv()
 
@@ -55,6 +55,8 @@ class CustomTrainer(Trainer):
         
         loss = loss.mean()
         
+        get_memory_usage(0)
+        get_memory_usage(1)
         return (loss, outputs) if return_outputs else loss
 
 
