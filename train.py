@@ -41,8 +41,8 @@ class CustomTrainer(Trainer):
         labels = inputs.pop("labels")
 
         # inputs
-        # inputs["input_ids"] = inputs["input_ids"].to(device)
-        # inputs["attention_mask"] = inputs["attention_mask"].to(device)
+        inputs["input_ids"] = inputs["input_ids"].to(device)
+        inputs["attention_mask"] = inputs["attention_mask"].to(device)
 
         mask_token_id = tokenizer.mask_token_id
         outputs = model(**inputs)
