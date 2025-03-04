@@ -29,16 +29,15 @@ lora_config.target_modules = [
 ]
 
 
-print(f'Device: {Config.device()}')
 # Apply LoRA using PEFT
 model = get_peft_model(model, lora_config)
 if torch.cuda.device_count() > 1:
     model = torch.nn.DataParallel(model, device_ids=[0,1])
 
-model = model.to(Config.device())
+# model = model.to(Config.device())
+print(f'device: {model.module.device}')
 
-
-model.print_trainable_parameters()
+model.module.print_trainable_parameters()
 
 def tokenize_function(examples):
     examples["text"] = [f"'{sentence}', emotion of the given text is [MASK]?" for sentence in examples["text"]]
