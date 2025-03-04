@@ -26,28 +26,21 @@ wandb_login(key=wandb_key)
 
 class CustomTrainer(Trainer):
     def compute_loss(
-        self, model, inputs,num_items_in_batch, return_outputs=False
+        self, model, inputs, return_outputs=False
     ):
-        print(f'num items in batch: {num_items_in_batch}')
+        
         if isinstance(model, torch.nn.DataParallel):
             print(f"devices: {model.device_ids}")
-            
             model = model.module
-            
-
         
         device = model.device
-    
+
+        print(f'model device: {device}')
+        criterion = torch.nn.CrossEntropyLoss(reduction='none')
         
-        print(f'device: {device}')
-        criterion = torch.nn.CrossEntropyLoss().to(device)  # Alternative to CrossEntropyLoss
-        
-        inputs = {k: v.to(device) for k, v in inputs.items()}
+        # inputs = {k: v.to(device) for k, v in inputs.items()}
         labels = inputs.pop("labels")
 
-        # inputs
-        inputs["input_ids"] = inputs["input_ids"].to(device)
-        inputs["attention_mask"] = inputs["attention_mask"].to(device)
         
         print(f'inputs shape: {inputs["input_ids"].shape}')
 
@@ -55,16 +48,16 @@ class CustomTrainer(Trainer):
         outputs = model(**inputs)
         logits = outputs.logits
 
+        device = logits.device
+        labels = labels.to(device)
+        
         # get mask_token_ids of all inputs
         mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
         
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
         loss = criterion(logits, labels)
-        
-        # get_memory_usage()
-       
-        
+        loss = loss.mean()
         return (loss, outputs) if return_outputs else loss
 
 
