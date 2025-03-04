@@ -26,16 +26,18 @@ wandb_login(key=wandb_key)
 
 class CustomTrainer(Trainer):
     def compute_loss(
-        self, model, inputs, return_outputs=False, num_items_in_batch=None
+        self, model, inputs,num_items_in_batch, return_outputs=False
     ):
-        
+        print(f'num items in batch: {num_items_in_batch}')
         if isinstance(model, torch.nn.DataParallel):
             print(f"devices: {model.device_ids}")
+            
             model = model.module
             
 
         
         device = model.device
+    
         
         print(f'device: {device}')
         criterion = torch.nn.CrossEntropyLoss().to(device)  # Alternative to CrossEntropyLoss
@@ -60,7 +62,7 @@ class CustomTrainer(Trainer):
 
         loss = criterion(logits, labels)
         
-        get_memory_usage()
+        # get_memory_usage()
        
         
         return (loss, outputs) if return_outputs else loss
