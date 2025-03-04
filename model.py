@@ -15,7 +15,7 @@ lora_config = LoraConfig(
     lora_dropout=0.1,
     bias="none",
     task_type="TOKEN_CLS",# or any other appropriate task type,
-    modules_to_save=['cls.decoder']
+    # modules_to_save=['cls.decoder']
 )
 
 
