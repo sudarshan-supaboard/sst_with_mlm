@@ -5,26 +5,26 @@ from datasets import Dataset, DatasetDict
 from pathlib import Path
 from pprint import pprint
 
-
+from config import Config
 # Download latest version
-path = kagglehub.dataset_download("debarshichanda/goemotions")
+path = kagglehub.dataset_download(Config.DATASET_PATH)
 
 print("Path to dataset files:", path)
 
 ds_path = Path(path)
-emotions = ds_path / 'data/emotions.txt'
-train_path = ds_path / 'data/train.tsv'
-test_path = ds_path / 'data/test.tsv'
-valid_path = ds_path / 'data/dev.tsv'
+emotions = ds_path / 'emotions.txt'
+train_path = ds_path / 'train.csv'
+test_path = ds_path / 'test.csv'
+valid_path = ds_path / 'val.csv'
 
-train_df = pd.read_csv(train_path, sep="\t")
-test_df = pd.read_csv(test_path, sep="\t")
-valid_df = pd.read_csv(valid_path, sep="\t")
+train_df = pd.read_csv(train_path)
+test_df = pd.read_csv(test_path)
+valid_df = pd.read_csv(valid_path)
 
 # shuffle the train_df
-train_df = train_df.sample(frac=1).reset_index(drop=True)
-test_df = test_df.sample(frac = 1).reset_index(drop=True)
-valid_df = valid_df.sample(frac = 1).reset_index(drop=True)
+train_df = train_df.sample(frac=1, random_state=Config.RANDOM_STATE, ignore_index=True)
+test_df = test_df.sample(frac = 1, random_state=Config.RANDOM_STATE, ignore_index=True)
+valid_df = valid_df.sample(frac = 1, random_state=Config.RANDOM_STATE, ignore_index=True)
 
 with open(emotions) as f:
     idx_to_labels = f.readlines()
@@ -37,22 +37,6 @@ for i, label in enumerate(idx_to_labels):
     labels_to_idx[label] = i
 
 
-train_df.columns = ["text", "label", "unnamed"]
-test_df.columns = ["text", "label", "unnamed"]
-valid_df.columns = ["text", "label", "unnamed"]
-
-train_df.drop(columns=['unnamed'], inplace=True)
-test_df.drop(columns=['unnamed'], inplace=True)
-valid_df.drop(columns=['unnamed'], inplace=True)
-
-
-def map_emotions(x):
-   return idx_to_labels[int(x.split(',')[0])]
-
-train_df["label"] = train_df["label"].apply(map_emotions)
-test_df["label"] = test_df["label"].apply(map_emotions)
-valid_df["label"] = valid_df["label"].apply(map_emotions)
-
 pprint({
     'train_df.shape': train_df.shape,
     'test_df.shape': test_df.shape,
@@ -64,3 +48,6 @@ valid_dataset = Dataset.from_pandas(valid_df)
 test_dataset = Dataset.from_pandas(test_df)
 
 dataset = DatasetDict({"train": train_dataset, "valid": valid_dataset, "test": test_dataset})
+
+if __name__ == '__main__':
+    print(dataset['train'][15])

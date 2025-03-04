@@ -5,6 +5,8 @@ class Config:
     BUCKET_NAME="pleasedontbankrupt"
     OUTPUT_DIR="checkpoints"
     MODEL_PATH="google-bert/bert-base-uncased"
+    DATASET_PATH="sudarshan1927/go-emotions-and-generated"
+    RANDOM_STATE=42
    
     @classmethod
     def device(cls):
