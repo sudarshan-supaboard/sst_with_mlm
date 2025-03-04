@@ -34,8 +34,6 @@ class CustomTrainer(Trainer):
         labels = inputs.pop("labels").to(device)
 
         # inputs
-        
-        print(f"input_ids.shape: {inputs['input_ids'].shape}", )
         inputs["input_ids"] = inputs["input_ids"].to(device)
         inputs["attention_mask"] = inputs["attention_mask"].to(device)
 
@@ -48,9 +46,6 @@ class CustomTrainer(Trainer):
         
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
-        print(logits.shape)
-        print(labels.shape)
-        
         # calculate loss
         loss = F.cross_entropy(logits, labels)
 
@@ -77,9 +72,9 @@ def compute_metrics(eval_pred):
 training_args = TrainingArguments(
     output_dir=Config.OUTPUT_DIR,  # output directory
     num_train_epochs=1,  # total number of training epochs
-    per_device_train_batch_size=8,  # batch size per device during training
-    gradient_accumulation_steps=2,
-    per_device_eval_batch_size=64,  # batch size for evaluation
+    per_device_train_batch_size=4,  # batch size per device during training
+    # gradient_accumulation_steps=2,
+    per_device_eval_batch_size=4,  # batch size for evaluation
     warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
     learning_rate=5e-5,
     weight_decay=0.01,  # strength of weight decay
