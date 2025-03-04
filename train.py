@@ -45,9 +45,8 @@ class CustomTrainer(Trainer):
 
         # get mask_token_ids of all inputs
         mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
-        print(f'mask token indices shape: {len(mask_token_indices)}, {mask_token_indices[0].shape}, {mask_token_indices[1].shape}')
-        mask_token_indices = mask_token_indices[1]
-        logits = logits[0, mask_token_indices, :]
+        
+        logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
         print(logits.shape)
         print(labels.shape)

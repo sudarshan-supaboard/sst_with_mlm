@@ -4,6 +4,7 @@
 /**/*.zip
 
 *.zip
+*.ipynb
 wandb
 results
 checkpoints
