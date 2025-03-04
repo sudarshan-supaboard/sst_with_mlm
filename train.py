@@ -29,13 +29,17 @@ class CustomTrainer(Trainer):
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ):
 
-        device = model.module.device
+        if isinstance(model, torch.nn.DataParallel):
+            model = model.module
         
-        labels = inputs.pop("labels").to(device)
+        device = model.device
+        
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        labels = inputs.pop("labels")
 
         # inputs
-        inputs["input_ids"] = inputs["input_ids"].to(device)
-        inputs["attention_mask"] = inputs["attention_mask"].to(device)
+        # inputs["input_ids"] = inputs["input_ids"].to(device)
+        # inputs["attention_mask"] = inputs["attention_mask"].to(device)
 
         mask_token_id = tokenizer.mask_token_id
         outputs = model(**inputs)
@@ -48,7 +52,9 @@ class CustomTrainer(Trainer):
 
         # calculate loss
         loss = F.cross_entropy(logits, labels)
-
+        
+        loss = loss.mean()
+        
         return (loss, outputs) if return_outputs else loss
 
 
