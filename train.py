@@ -30,6 +30,7 @@ class CustomTrainer(Trainer):
     ):
 
         if isinstance(model, torch.nn.DataParallel):
+            print("model is DataPrallel")
             model = model.module
         
         device = model.device
@@ -51,13 +52,14 @@ class CustomTrainer(Trainer):
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
         # calculate loss
-        # logits.to("cuda:1")
-        # labels.to("cuda:1")
+        logits.to("cuda:1")
+        labels.to("cuda:1")
         loss = F.cross_entropy(logits, labels)
         
         loss = loss.mean()
         
         get_memory_usage()
+       
         
         return (loss, outputs) if return_outputs else loss
 

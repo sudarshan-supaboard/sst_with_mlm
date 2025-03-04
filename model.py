@@ -20,24 +20,20 @@ lora_config = LoraConfig(
     # modules_to_save=['cls.decoder']
 )
 
-num_layers = 12  # BERT-base has 12 layers
-target_layers = [f"encoder.layer.{i}.attention.self" for i in range(num_layers - 8, num_layers)]
+# num_layers = 12  # BERT-base has 12 layers
+# target_layers = [f"encoder.layer.{i}.attention.self" for i in range(num_layers - 8, num_layers)]
 
-# Modify the target modules to include only the last 8 layers
-lora_config.target_modules = [
-    f"{layer}.{module}" for layer in target_layers for module in ["query", "key", "value"]
-]
+# # Modify the target modules to include only the last 8 layers
+# lora_config.target_modules = [
+#     f"{layer}.{module}" for layer in target_layers for module in ["query", "key", "value"]
+# ]
 
 
 # Apply LoRA using PEFT
 model = get_peft_model(model, lora_config)
-if torch.cuda.device_count() > 1:
-    model = torch.nn.DataParallel(model, device_ids=[0,1])
+model = model.to(Config.device())
 
-# model = model.to(Config.device())
-print(f'device: {model.module.device}')
-
-model.module.print_trainable_parameters()
+model.print_trainable_parameters()
 
 def tokenize_function(examples):
     examples["text"] = [f"'{sentence}', emotion of the given text is [MASK]?" for sentence in examples["text"]]
