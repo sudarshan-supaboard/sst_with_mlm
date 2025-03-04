@@ -1,3 +1,5 @@
+import torch
+
 from transformers import BertForMaskedLM, BertTokenizer
 from config import Config
 from peft import LoraConfig, get_peft_model # type: ignore
@@ -27,9 +29,14 @@ lora_config.target_modules = [
 ]
 
 
+print(f'Device: {Config.device()}')
 # Apply LoRA using PEFT
 model = get_peft_model(model, lora_config)
+if torch.cuda.device_count() > 1:
+    model = torch.nn.DataParallel(model, device_ids=[])
+
 model = model.to(Config.device())
+
 
 model.print_trainable_parameters()
 

@@ -51,11 +51,14 @@ class CustomTrainer(Trainer):
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
 
         # calculate loss
+        # logits.to("cuda:1")
+        # labels.to("cuda:1")
         loss = F.cross_entropy(logits, labels)
         
         loss = loss.mean()
         
         get_memory_usage()
+        
         return (loss, outputs) if return_outputs else loss
 
 
@@ -112,6 +115,9 @@ trainer = CustomTrainer(
     compute_metrics=compute_metrics,
     callbacks=[es_callback, gcs_callback],
 )
+
+# list all
+get_memory_usage()
 
 # initiating the training
 trainer.train()
