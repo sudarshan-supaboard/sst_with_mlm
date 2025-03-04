@@ -27,7 +27,7 @@ class CustomTrainer(Trainer):
   def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
 
       device = model.module.device
-      
+      print(f"inputs.shape: {inputs.shape}")
       labels = inputs.pop("labels").to(device)
 
       # inputs
@@ -85,8 +85,8 @@ training_args = TrainingArguments(
     metric_for_best_model="f1",
     greater_is_better=True,
     report_to="wandb",
-    bf16=True
-    # optim="adamw_bnb_8bit"
+    # bf16=True
+    optim="adamw_bnb_8bit"
 )
 
 es_callback = EarlyStoppingTrainingLossCallback()
