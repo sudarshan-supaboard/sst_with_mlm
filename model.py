@@ -33,7 +33,7 @@ print(f'Device: {Config.device()}')
 # Apply LoRA using PEFT
 model = get_peft_model(model, lora_config)
 if torch.cuda.device_count() > 1:
-    model = torch.nn.DataParallel(model, device_ids=[])
+    model = torch.nn.DataParallel(model, device_ids=[0,1])
 
 model = model.to(Config.device())
 
