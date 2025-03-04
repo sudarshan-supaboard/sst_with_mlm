@@ -37,6 +37,7 @@ class CustomTrainer(Trainer):
         
         device = model.device
         
+        print(f'device: {device}')
         criterion = torch.nn.CrossEntropyLoss().to(device)  # Alternative to CrossEntropyLoss
         
         inputs = {k: v.to(device) for k, v in inputs.items()}
@@ -86,7 +87,7 @@ training_args = TrainingArguments(
     output_dir=Config.OUTPUT_DIR,  # output directory
     num_train_epochs=1,  # total number of training epochs
     per_device_train_batch_size=4,  # batch size per device during training
-    # gradient_accumulation_steps=2,
+    gradient_accumulation_steps=2,
     per_device_eval_batch_size=4,  # batch size for evaluation
     warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
     learning_rate=5e-5,
