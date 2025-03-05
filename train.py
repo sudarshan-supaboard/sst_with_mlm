@@ -58,8 +58,13 @@ class CustomTrainer(Trainer):
         # get mask_token_ids of all inputs
         mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
+        
         loss = F.cross_entropy(logits, labels)
 
+        del logits
+        del labels
+        del mask_token_indices
+        
         return (loss, outputs) if return_outputs else loss
 
 
