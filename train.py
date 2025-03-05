@@ -47,7 +47,12 @@ class CustomTrainer(Trainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ):
-
+        device = 'cpu'
+        
+        if isinstance(model, torch.nn.DataParallel):
+            device = model.module.device
+        
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         labels = inputs.pop("labels")
 
         mask_token_id = tokenizer.mask_token_id
@@ -60,13 +65,6 @@ class CustomTrainer(Trainer):
         
         loss = F.cross_entropy(logits, labels)
         
-        metrics = compute_metrics((logits.cpu().detach().numpy(), labels.cpu().detach().numpy()))
-        metrics['train_accuracy'] = metrics.pop('accuracy')
-        metrics['train_f1'] = metrics.pop('f1')
-        
-        self.log(metrics)
-
-        # clear_cache()
         return (loss, outputs) if return_outputs else loss
 
 
