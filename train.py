@@ -63,24 +63,30 @@ class CustomTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
-def train(bkt_upload=True):
+def train(bkt_upload=True,num_epochs=1,
+          batch_size=4,
+          grad_accum=2, 
+          eval_batch_size=64, 
+          save_steps=10,
+          eval_steps=10
+        ):
 
     training_args = TrainingArguments(
         run_name=Config.PROJECT_NAME,
         output_dir=Config.OUTPUT_DIR,  # output directory
-        num_train_epochs=5,  # total number of training epochs
-        per_device_train_batch_size=8,  # batch size per device during training
-        gradient_accumulation_steps=4,
-        per_device_eval_batch_size=64,  # batch size for evaluation
+        num_train_epochs=num_epochs,  # total number of training epochs
+        per_device_train_batch_size=batch_size,  # batch size per device during training
+        gradient_accumulation_steps=grad_accum,
+        per_device_eval_batch_size=eval_batch_size,  # batch size for evaluation
         warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
         learning_rate=5e-5,
         weight_decay=0.01,  # strength of weight decay
         logging_dir="./logs",  # directory for storing logs
-        logging_steps=10,
+        logging_steps=1,
         eval_strategy="steps",
         save_strategy="steps",
-        eval_steps=300,
-        save_steps=300,
+        eval_steps=eval_steps,
+        save_steps=save_steps,
         save_total_limit=4,
         load_best_model_at_end=True,
         metric_for_best_model="f1",
@@ -121,6 +127,14 @@ def train(bkt_upload=True):
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description="User Info CLI")
+    parser.add_argument("-epochs", "--epochs", type=int, help="Number of epochs", default=1)
+    parser.add_argument("-batch_size", "--batch_size", type=int, help="Number of train batches", default=4)
+    parser.add_argument("-eval_batch_size", "--eval_batch_size", type=int, help="Number of eval batches", default=64)
+    parser.add_argument("-accum_steps", "--accum_steps", type=int, help="grad accumulation steps", default=2)
+    parser.add_argument("-save_steps", "--save_steps", type=int, help="save steps", default=10)
+    parser.add_argument("-eval_steps", "--eval_steps", type=int, help="eval steps", default=10)
+    
+    
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")
     args = parser.parse_args()
     
@@ -131,6 +145,15 @@ if __name__ == '__main__':
     else:
         print(f'bucket upload disabled')
     
-    train(bkt_upload=bkt_upload)
+    print(parser.epochs)
+    print(parser.save_steps)
+    train(bkt_upload=bkt_upload, 
+          num_epochs=parser.epochs,
+          batch_size=parser.batch_size,
+          eval_batch_size=parser.eval_batch_size,
+          grad_accum=parser.accum_steps,
+          save_steps=parser.save_steps,
+          eval_steps=parser.eval_steps
+        )
 
 
