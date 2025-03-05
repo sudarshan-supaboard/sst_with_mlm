@@ -37,7 +37,12 @@ def tokenize_function(examples):
 
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
+    mask_token_id = tokenizer.mask_token_id
+    
+    mask_token_ids = torch.where(batch_inputs["input_ids"] == mask_token_id)
+    batch_inputs['mask_token_ids'] = mask_token_ids[1]
     batch_inputs["label"] = tokenizer.convert_tokens_to_ids(examples["label"])
+    
     return batch_inputs
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
