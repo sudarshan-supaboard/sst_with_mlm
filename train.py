@@ -145,15 +145,14 @@ if __name__ == '__main__':
     else:
         print(f'bucket upload disabled')
     
-    print(parser.epochs)
-    print(parser.save_steps)
+    
     train(bkt_upload=bkt_upload, 
-          num_epochs=parser.epochs,
-          batch_size=parser.batch_size,
-          eval_batch_size=parser.eval_batch_size,
-          grad_accum=parser.accum_steps,
-          save_steps=parser.save_steps,
-          eval_steps=parser.eval_steps
+          num_epochs=args.epochs,
+          batch_size=args.batch_size,
+          eval_batch_size=args.eval_batch_size,
+          grad_accum=args.accum_steps,
+          save_steps=args.save_steps,
+          eval_steps=args.eval_steps
         )
 
 
