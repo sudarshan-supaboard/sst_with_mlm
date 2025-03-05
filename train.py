@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from pprint import pprint
 
 from config import Config
-from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, get_memory_usage
+from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, get_memory_usage, clear_cache
 
 load_dotenv()
 
@@ -34,10 +34,9 @@ f1 = evaluate.load("f1")
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
-    print(logits)
-    print(labels)
     predictions = np.argmax(logits, axis=1)
 
+    
     return {
         "accuracy": accuracy.compute(predictions=predictions, references=labels)["accuracy"],  # type: ignore
         "f1": f1.compute(predictions=predictions, references=labels, average="weighted")["f1"],  # type: ignore
@@ -60,11 +59,14 @@ class CustomTrainer(Trainer):
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
         
         loss = F.cross_entropy(logits, labels)
-
-        del logits
-        del labels
-        del mask_token_indices
         
+        metrics = compute_metrics((logits.cpu().detach().numpy(), labels.cpu().detach.numpy()))
+        metrics['train_accuracy'] = metrics.pop('accuracy')
+        metrics['train_f1'] = metrics.pop('f1')
+        
+        self.log(metrics)
+
+        # clear_cache()
         return (loss, outputs) if return_outputs else loss
 
 
@@ -98,8 +100,6 @@ def train(bkt_upload=True,num_epochs=1,
         greater_is_better=True,
         report_to="wandb",
         bf16=True
-        # optim="adamw_bnb_8bit",
-        # ddp_find_unused_parameters=False if torch.cuda.device_count() > 1 else None,
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
