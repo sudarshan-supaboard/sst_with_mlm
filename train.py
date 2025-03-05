@@ -26,7 +26,7 @@ wandb_key = os.environ["WANDB_API_KEY"]
 hf_login(token=hf_key)
 wandb_login(key=wandb_key)
 
-wandb.init(Config.PROJECT_NAME)
+wandb.init(project=Config.PROJECT_NAME)
 # Load multiple metrics
 accuracy = evaluate.load("accuracy")
 f1 = evaluate.load("f1")
