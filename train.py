@@ -60,7 +60,7 @@ class CustomTrainer(Trainer):
         
         loss = F.cross_entropy(logits, labels)
         
-        metrics = compute_metrics((logits.cpu().detach().numpy(), labels.cpu().detach.numpy()))
+        metrics = compute_metrics((logits.cpu().detach().numpy(), labels.cpu().detach().numpy()))
         metrics['train_accuracy'] = metrics.pop('accuracy')
         metrics['train_f1'] = metrics.pop('f1')
         
