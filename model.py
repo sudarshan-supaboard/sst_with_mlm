@@ -2,7 +2,7 @@ import torch
 
 from transformers import BertForMaskedLM, BertTokenizer
 from config import Config
-from peft import LoraConfig, get_peft_model # type: ignore
+from peft import LoraConfig, get_peft_model, TaskType # type: ignore
 from preprocess import dataset
 
 model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
@@ -16,7 +16,6 @@ lora_config = LoraConfig(
     target_modules=["query", "value", "key"],
     lora_dropout=0.1,
     bias="none",
-    task_type="TOKEN_CLS",# or any other appropriate task type,
 )
 
 # num_layers = 12  # BERT-base has 12 layers
@@ -37,10 +36,7 @@ def tokenize_function(examples):
 
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
-    mask_token_id = tokenizer.mask_token_id
-    
-    mask_token_ids = torch.where(batch_inputs["input_ids"] == mask_token_id)
-    batch_inputs['mask_token_ids'] = mask_token_ids[1]
+
     batch_inputs["label"] = tokenizer.convert_tokens_to_ids(examples["label"])
     
     return batch_inputs
@@ -48,7 +44,7 @@ def tokenize_function(examples):
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
 tokenized_datasets.set_format(type='torch',
-                              columns=['input_ids', 'token_type_ids', 'attention_mask',"mask_token_ids", 'label'],
+                              columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
                               device='cpu',
                               output_all_columns=True)
 

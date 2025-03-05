@@ -55,16 +55,15 @@ class CustomTrainer(Trainer):
         inputs = {k: v.to(device) for k, v in inputs.items()}
         labels = inputs.pop("labels")
 
-        # mask_token_id = tokenizer.mask_token_id
-        mask_token_ids = inputs['mask_token_ids']
+        mask_token_id = tokenizer.mask_token_id
         
         outputs = model(**inputs)
         logits = outputs.logits
         
         
         # get mask_token_ids of all inputs
-        # mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
-        logits = logits[torch.arange(0, len(mask_token_ids)), mask_token_ids, :]
+        mask_token_indices = torch.where(inputs["input_ids"] == mask_token_id)
+        logits = logits[mask_token_indices[0], mask_token_indices[1], :]
         
         loss = F.cross_entropy(logits, labels)
         
@@ -106,7 +105,7 @@ def train(bkt_upload=True,num_epochs=1,
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
     gcs_callback = GCSUploadCallback(bkt_upload=bkt_upload)
 
-    trainer = CustomTrainer(
+    trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
