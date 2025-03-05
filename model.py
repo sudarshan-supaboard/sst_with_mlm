@@ -48,7 +48,7 @@ def tokenize_function(examples):
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
 tokenized_datasets.set_format(type='torch',
-                              columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+                              columns=['input_ids', 'token_type_ids', 'attention_mask',"mask_token_ids", 'label'],
                               device='cpu',
                               output_all_columns=True)
 
