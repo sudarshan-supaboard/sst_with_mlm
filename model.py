@@ -19,19 +19,17 @@ lora_config = LoraConfig(
     task_type="TOKEN_CLS",# or any other appropriate task type,
 )
 
-num_layers = 12  # BERT-base has 12 layers
-target_layers = [f"encoder.layer.{i}.attention.self" for i in range(num_layers - 8, num_layers)]
+# num_layers = 12  # BERT-base has 12 layers
+# target_layers = [f"encoder.layer.{i}.attention.self" for i in range(num_layers - 8, num_layers)]
 
-# Modify the target modules to include only the last 8 layers
-lora_config.target_modules = [
-    f"{layer}.{module}" for layer in target_layers for module in ["query", "key", "value"]
-]
+# # Modify the target modules to include only the last 8 layers
+# lora_config.target_modules = [
+#     f"{layer}.{module}" for layer in target_layers for module in ["query", "key", "value"]
+# ]
 
 
 # Apply LoRA using PEFT
 model = get_peft_model(model, lora_config)
-# model = model.to(Config.device())
-
 model.print_trainable_parameters()
 
 def tokenize_function(examples):

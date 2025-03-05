@@ -7,6 +7,7 @@ class Config:
     MODEL_PATH="google-bert/bert-base-uncased"
     DATASET_PATH="sudarshan1927/go-emotions-and-generated"
     RANDOM_STATE=42
+    PROJECT_NAME="sst_with_mlm"
    
     @classmethod
     def device(cls):

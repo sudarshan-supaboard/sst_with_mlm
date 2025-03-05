@@ -2,9 +2,11 @@ torchmetrics==1.5.1
 transformers==4.47.0
 datasets
 bitsandbytes
-kagglehub
+kagglehub==0.3.10
 evaluate
 wandb
 dotenv
 google-cloud-storage
 peft
+argparse
+gputil

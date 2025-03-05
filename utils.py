@@ -50,7 +50,7 @@ class EarlyStoppingTrainingLossCallback(TrainerCallback):
         print(f"Running Early Stop Callback")
         if state.log_history:
             val_losses = [log["eval_loss"] for log in state.log_history if "eval_loss" in log]
-            print(f'Validation losses: {val_losses}')
+
             if val_losses:
                 current_loss = val_losses[-1]  # Get the most recent training loss
                 if current_loss < self.best_loss - self.min_delta:
@@ -66,11 +66,12 @@ class EarlyStoppingTrainingLossCallback(TrainerCallback):
 
 
 class GCSUploadCallback(TrainerCallback):
-    def __init__(self, bucket_name=Config.BUCKET_NAME, checkpoint_dir=Config.OUTPUT_DIR):
+    def __init__(self, bucket_name=Config.BUCKET_NAME, checkpoint_dir=Config.OUTPUT_DIR, bkt_upload=True):
         self.bucket_name = bucket_name
         self.checkpoint_dir = checkpoint_dir  # Local directory where checkpoints are saved
         self.storage_client = storage.Client(project=Config.PROJECT_ID)
         self.bucket = self.storage_client.bucket(bucket_name)
+        self.bkt_upload = bkt_upload
 
     def upload_to_gcs(self, local_path):
         """Uploads a file or directory to GCS recursively."""
@@ -86,6 +87,11 @@ class GCSUploadCallback(TrainerCallback):
         
     def on_save(self, args, state, control, **kwargs):
         """Triggered whenever a checkpoint is saved."""
+        
+        if not self.bkt_upload:
+            print("Not uploading to GCS")
+            return
+        
         print("Saving checkpoint, uploading to GCS...")
         
         # Upload the entire checkpoint directory
