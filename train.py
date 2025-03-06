@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from pprint import pprint
 from sklearn.metrics import accuracy_score, f1_score
 from config import Config
-from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, get_memory_usage, clear_cache
+from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, FreeMemoryCallback, get_memory_usage, clear_cache
 
 load_dotenv()
 
@@ -87,8 +87,8 @@ class CustomTrainer(Trainer):
 
 def train(bkt_upload=True,num_epochs=1,
           batch_size=4,
-          grad_accum=2, 
-          eval_batch_size=64, 
+          grad_accum=2,
+          eval_batch_size=2, 
           save_steps=10,
           eval_steps=10
         ):
@@ -115,19 +115,20 @@ def train(bkt_upload=True,num_epochs=1,
         greater_is_better=True,
         report_to="wandb",
         bf16=True,
-        prediction_loss_only=False
+        prediction_loss_only=False,
+        eval_accumulation_steps=1,
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
     gcs_callback = GCSUploadCallback(bkt_upload=bkt_upload)
-
+    fm_callback = FreeMemoryCallback()
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
         eval_dataset=tokenized_datasets["valid"],
         compute_metrics=compute_metrics,
-        callbacks=[es_callback, gcs_callback],
+        callbacks=[fm_callback, es_callback, gcs_callback],
     )
 
     # initiating the training
