@@ -36,32 +36,33 @@ def tokenize_function(examples):
 
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
+     # Convert labels (words) to token IDs
+    label_token_ids = torch.tensor([tokenizer.convert_tokens_to_ids(label) for label in examples["label"]], dtype=torch.long)
 
-    # mask_token_id = tokenizer.mask
-    # Initialize labels with -100 (ignored in loss computation)
-    labels = torch.full_like(batch_inputs['input_ids'], -100)
-    mask_token_id = tokenizer.mask_token_id
-    masked_indices = torch.where(batch_inputs["input_ids"] == mask_token_id)
-    
-    for i, token in enumerate(examples['label']):
-        labels[masked_indices[0][i], masked_indices[1][i]] = tokenizer.convert_tokens_to_ids(token)
-    
-    assert labels.shape == batch_inputs['input_ids'].shape
+    # Create labels tensor with -100 (ignored in loss)
+    labels = torch.full_like(batch_inputs["input_ids"], fill_value=-100)
 
-    batch_inputs['labels'] = labels.tolist()
+    # Find the index of the [MASK] token in each sequence
+    mask_token_indices = torch.where(batch_inputs["input_ids"] == tokenizer.mask_token_id)
 
-    return batch_inputs
+    # Place the correct label token ID at the [MASK] position
+    labels[mask_token_indices] = label_token_ids
+
+    # Convert to Python dictionary format for Hugging Face Dataset
+    return {"input_ids": batch_inputs["input_ids"].tolist(), 
+            "attention_mask": batch_inputs["attention_mask"].tolist(), 
+            "labels": labels.tolist()}
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
 tokenized_datasets.set_format(type='torch',
-                              columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'],
+                              columns=['input_ids', 'attention_mask', 'labels'],
                               device='cpu',
-                              output_all_columns=True)
+                              output_all_columns=False)
 
 if __name__ == '__main__':
     from pprint import pprint
     # pprint(model)
     # model.print_trainable_parameters()
-    # print(tokenized_datasets['train'][0])
+    pprint(tokenized_datasets['train'][:10])
     
