@@ -102,7 +102,8 @@ def train(bkt_upload=True,num_epochs=1,
         metric_for_best_model="f1",
         greater_is_better=True,
         report_to="wandb",
-        bf16=True
+        bf16=True,
+        prediction_loss_only=True
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
