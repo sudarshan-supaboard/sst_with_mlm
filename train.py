@@ -103,7 +103,7 @@ def train(bkt_upload=True,num_epochs=6,
         learning_rate=5e-5,
         weight_decay=0.01,  # strength of weight decay
         logging_dir="./logs",  # directory for storing logs
-        logging_steps=1,
+        logging_steps=10,
         eval_strategy="no",
         save_strategy="steps",
         save_steps=save_steps,
