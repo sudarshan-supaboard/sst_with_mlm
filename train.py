@@ -13,7 +13,7 @@ from transformers import Trainer, TrainingArguments
 from model import tokenizer, model, tokenized_datasets
 from dotenv import load_dotenv
 from pprint import pprint
-
+from sklearn.metrics import accuracy_score, f1_score
 from config import Config
 from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, get_memory_usage, clear_cache
 
@@ -34,12 +34,24 @@ f1 = evaluate.load("f1")
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
-    predictions = np.argmax(logits, axis=1)
 
-    
+    # Find the masked token positions
+    mask_token_indices = torch.where(labels != -100)
+
+    # Extract predicted token IDs at masked positions
+    preds = torch.argmax(torch.tensor(logits), dim=-1)
+    preds = preds[mask_token_indices]
+
+    # Extract true token IDs at masked positions
+    true_labels = torch.tensor(labels)[mask_token_indices]
+
+    # Convert to numpy for sklearn metrics
+    preds = preds.cpu().numpy()
+    true_labels = true_labels.cpu().numpy()
+
     return {
-        "accuracy": accuracy.compute(predictions=predictions, references=labels)["accuracy"],  # type: ignore
-        "f1": f1.compute(predictions=predictions, references=labels, average="weighted")["f1"],  # type: ignore
+        "accuracy": accuracy_score(true_labels, preds),
+        "f1": f1_score(true_labels, preds, average="weighted")
     }
 
 
@@ -103,7 +115,7 @@ def train(bkt_upload=True,num_epochs=1,
         greater_is_better=True,
         report_to="wandb",
         bf16=True,
-        prediction_loss_only=True
+        prediction_loss_only=False
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
