@@ -108,7 +108,6 @@ def train(bkt_upload=True,num_epochs=6,
         save_strategy="steps",
         save_steps=save_steps,
         save_total_limit=4,
-        load_best_model_at_end=True,
         report_to="wandb",
         bf16=True,
     )
