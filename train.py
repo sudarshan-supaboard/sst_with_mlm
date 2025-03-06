@@ -110,6 +110,7 @@ def train(bkt_upload=True,num_epochs=6,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
+        max_grad_norm=13
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
@@ -142,12 +143,10 @@ def train(bkt_upload=True,num_epochs=6,
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description="User Info CLI")
-    parser.add_argument("-epochs", "--epochs", type=int, help="Number of epochs", default=1)
-    parser.add_argument("-batch_size", "--batch_size", type=int, help="Number of train batches", default=4)
-    # parser.add_argument("-eval_batch_size", "--eval_batch_size", type=int, help="Number of eval batches", default=64)
-    parser.add_argument("-accum_steps", "--accum_steps", type=int, help="grad accumulation steps", default=2)
-    parser.add_argument("-save_steps", "--save_steps", type=int, help="save steps", default=10)
-    # parser.add_argument("-eval_steps", "--eval_steps", type=int, help="eval steps", default=10)
+    parser.add_argument("-epochs", "--epochs", type=int, help="Number of epochs", default=6)
+    parser.add_argument("-batch_size", "--batch_size", type=int, help="Number of train batches", default=8)
+    parser.add_argument("-accum_steps", "--accum_steps", type=int, help="grad accumulation steps", default=4)
+    parser.add_argument("-save_steps", "--save_steps", type=int, help="save steps", default=300)
     
     
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")
