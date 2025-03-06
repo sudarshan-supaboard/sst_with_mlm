@@ -100,3 +100,6 @@ class GCSUploadCallback(TrainerCallback):
         print(f"Checkpoint uploaded to gs://{self.bucket_name}/{uploaded_file}")
 
 
+class FreeMemoryCallback(TrainerCallback):
+    def on_evaluate(self, args, state, control, **kwargs):
+        clear_cache()

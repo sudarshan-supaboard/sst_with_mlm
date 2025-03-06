@@ -10,12 +10,12 @@ import argparse
 from huggingface_hub import login as hf_login
 from wandb import login as wandb_login
 from transformers import Trainer, TrainingArguments
-from model import tokenizer, model, tokenized_datasets
+from model import model, tokenize
 from dotenv import load_dotenv
 from pprint import pprint
 from sklearn.metrics import accuracy_score, f1_score
 from config import Config
-from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, FreeMemoryCallback, get_memory_usage, clear_cache
+from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, FreeMemoryCallback
 
 load_dotenv()
 
@@ -92,6 +92,8 @@ def train(bkt_upload=True,num_epochs=1,
           save_steps=10,
           eval_steps=10
         ):
+    
+    tokenized_datasets = tokenize()
 
     training_args = TrainingArguments(
         run_name=Config.PROJECT_NAME,
