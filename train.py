@@ -85,12 +85,10 @@ class CustomTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
-def train(bkt_upload=True,num_epochs=1,
-          batch_size=4,
-          grad_accum=2,
-          eval_batch_size=2, 
-          save_steps=10,
-          eval_steps=10
+def train(bkt_upload=True,num_epochs=6,
+          batch_size=8,
+          grad_accum=4,
+          save_steps=300,
         ):
     
     tokenized_datasets = tokenize()
@@ -101,24 +99,18 @@ def train(bkt_upload=True,num_epochs=1,
         num_train_epochs=num_epochs,  # total number of training epochs
         per_device_train_batch_size=batch_size,  # batch size per device during training
         gradient_accumulation_steps=grad_accum,
-        per_device_eval_batch_size=eval_batch_size,  # batch size for evaluation
         warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
         learning_rate=5e-5,
         weight_decay=0.01,  # strength of weight decay
         logging_dir="./logs",  # directory for storing logs
         logging_steps=1,
-        eval_strategy="steps",
+        eval_strategy="no",
         save_strategy="steps",
-        eval_steps=eval_steps,
         save_steps=save_steps,
         save_total_limit=4,
         load_best_model_at_end=True,
-        metric_for_best_model="f1",
-        greater_is_better=True,
         report_to="wandb",
         bf16=True,
-        prediction_loss_only=False,
-        eval_accumulation_steps=1,
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
@@ -130,7 +122,7 @@ def train(bkt_upload=True,num_epochs=1,
         train_dataset=tokenized_datasets["train"],
         eval_dataset=tokenized_datasets["valid"],
         compute_metrics=compute_metrics,
-        callbacks=[fm_callback, es_callback, gcs_callback],
+        callbacks=[es_callback, gcs_callback],
     )
 
     # initiating the training
@@ -153,10 +145,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="User Info CLI")
     parser.add_argument("-epochs", "--epochs", type=int, help="Number of epochs", default=1)
     parser.add_argument("-batch_size", "--batch_size", type=int, help="Number of train batches", default=4)
-    parser.add_argument("-eval_batch_size", "--eval_batch_size", type=int, help="Number of eval batches", default=64)
+    # parser.add_argument("-eval_batch_size", "--eval_batch_size", type=int, help="Number of eval batches", default=64)
     parser.add_argument("-accum_steps", "--accum_steps", type=int, help="grad accumulation steps", default=2)
     parser.add_argument("-save_steps", "--save_steps", type=int, help="save steps", default=10)
-    parser.add_argument("-eval_steps", "--eval_steps", type=int, help="eval steps", default=10)
+    # parser.add_argument("-eval_steps", "--eval_steps", type=int, help="eval steps", default=10)
     
     
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")
@@ -173,10 +165,8 @@ if __name__ == '__main__':
     train(bkt_upload=bkt_upload, 
           num_epochs=args.epochs,
           batch_size=args.batch_size,
-          eval_batch_size=args.eval_batch_size,
           grad_accum=args.accum_steps,
           save_steps=args.save_steps,
-          eval_steps=args.eval_steps
         )
 
 
