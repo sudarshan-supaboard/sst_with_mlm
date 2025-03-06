@@ -108,7 +108,7 @@ def train(bkt_upload=True,num_epochs=1,
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
     gcs_callback = GCSUploadCallback(bkt_upload=bkt_upload)
 
-    trainer = CustomTrainer(
+    trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
