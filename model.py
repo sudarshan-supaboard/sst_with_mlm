@@ -37,14 +37,25 @@ def tokenize_function(examples):
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
 
-    batch_inputs["label"] = tokenizer.convert_tokens_to_ids(examples["label"])
+    # mask_token_id = tokenizer.mask
+    # Initialize labels with -100 (ignored in loss computation)
+    labels = torch.full_like(batch_inputs['input_ids'], -100)
+    mask_token_id = tokenizer.mask_token_id
+    masked_indices = torch.where(batch_inputs["input_ids"] == mask_token_id)
     
+    for i, token in enumerate(examples['label']):
+        labels[masked_indices[0][i], masked_indices[1][i]] = tokenizer.convert_tokens_to_ids(token)
+    
+    assert labels.shape == batch_inputs['input_ids'].shape
+
+    batch_inputs['labels'] = labels.tolist()
+
     return batch_inputs
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
 tokenized_datasets.set_format(type='torch',
-                              columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+                              columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'],
                               device='cpu',
                               output_all_columns=True)
 
@@ -52,4 +63,5 @@ if __name__ == '__main__':
     from pprint import pprint
     # pprint(model)
     # model.print_trainable_parameters()
+    # print(tokenized_datasets['train'][0])
     
