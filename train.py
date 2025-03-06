@@ -110,7 +110,6 @@ def train(bkt_upload=True,num_epochs=6,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
-        max_grad_norm=13
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
