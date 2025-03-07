@@ -115,7 +115,8 @@ def train(bkt_upload=True,num_epochs=6,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
-        ddp_find_unused_parameters=False
+        torch_empty_cache_steps=4,
+        eval_accumulation_steps=1,
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
