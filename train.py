@@ -115,7 +115,7 @@ def train(bkt_upload=True,num_epochs=6,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
-        torch_empty_cache_steps=4,
+        torch_empty_cache_steps=10,
         eval_accumulation_steps=1,
     )
 
