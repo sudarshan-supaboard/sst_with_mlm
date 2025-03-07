@@ -3,6 +3,7 @@
 /**/.boto
 /**/*.zip
 
+*.csv
 *.zip
 *.ipynb
 wandb
