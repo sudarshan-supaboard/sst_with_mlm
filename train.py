@@ -46,13 +46,18 @@ def compute_metrics(eval_pred):
     true_labels = torch.tensor(labels)[mask_token_indices]
 
     # Convert to numpy for sklearn metrics
-    preds = preds.cpu().numpy()
-    true_labels = true_labels.cpu().numpy()
-
-    return {
-        "accuracy": accuracy_score(true_labels, preds),
-        "f1": f1_score(true_labels, preds, average="weighted")
+    preds = preds.cpu()
+    true_labels = true_labels.cpu()
+    
+    out = {
+        "accuracy":  accuracy.compute(predictions=preds, references=true_labels),
+        "f1": f1.compute(predictions=preds,references=true_labels)
     }
+    
+    del preds, true_labels
+    
+    torch.cuda.empty_cache()
+    return out
 
 
 class CustomTrainer(Trainer):
@@ -115,7 +120,7 @@ def train(bkt_upload=True,num_epochs=6,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
-        batch_eval_metrics=True
+        eval_accumulation_steps=1
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)

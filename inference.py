@@ -20,7 +20,7 @@ model.eval()
 def predict(inputs: List[str]):
   
   # tokenize the text
-  input_ids = tokenizer(inputs, return_tensors="pt", padding="max_length")
+  input_ids = tokenizer(inputs, return_tensors="pt", padding="max_length", truncation=True)
 
   # get the logits
   with torch.no_grad():
