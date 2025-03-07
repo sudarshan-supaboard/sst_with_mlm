@@ -125,7 +125,7 @@ def train(bkt_upload=True,num_epochs=6,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
         eval_dataset=tokenized_datasets["valid"],
-        compute_metrics=None,
+        compute_metrics=compute_metrics,
         callbacks=[es_callback, gcs_callback],
     )
 
