@@ -90,7 +90,8 @@ def train(bkt_upload=True,num_epochs=6,
           grad_accum=4,
           save_steps=300,
           eval_steps=300,
-          log_steps=10
+          log_steps=10,
+          eval_batch=4,
         ):
     
     tokenized_datasets = tokenize()
@@ -101,6 +102,7 @@ def train(bkt_upload=True,num_epochs=6,
         num_train_epochs=num_epochs,  # total number of training epochs
         per_device_train_batch_size=batch_size,  # batch size per device during training
         gradient_accumulation_steps=grad_accum,
+        per_device_eval_batch_size=eval_batch,
         warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
         learning_rate=5e-5,
         weight_decay=0.01,  # strength of weight decay
@@ -152,6 +154,8 @@ if __name__ == '__main__':
     parser.add_argument("-ss", "--save_steps", type=int, help="save steps", default=300)
     parser.add_argument("-es", "--eval_steps", type=int, help="evaluation steps", default=300)
     parser.add_argument("-ls", "--log_steps", type=int, help="logging steps", default=10)
+    parser.add_argument("-eb", "--eval_batch", type=int, help="evaluation batch size", default=4)
+    
     
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")
     args = parser.parse_args()
@@ -170,7 +174,8 @@ if __name__ == '__main__':
           grad_accum=args.accum_steps,
           save_steps=args.save_steps,
           eval_steps=args.eval_steps,
-          log_steps=args.log_steps
+          log_steps=args.log_steps,
+          eval_batch=args.eval_batch
         )
 
 
