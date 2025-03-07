@@ -89,6 +89,8 @@ def train(bkt_upload=True,num_epochs=6,
           batch_size=8,
           grad_accum=4,
           save_steps=300,
+          eval_steps=300,
+          log_steps=10
         ):
     
     tokenized_datasets = tokenize()
@@ -103,13 +105,15 @@ def train(bkt_upload=True,num_epochs=6,
         learning_rate=5e-5,
         weight_decay=0.01,  # strength of weight decay
         logging_dir="./logs",  # directory for storing logs
-        logging_steps=10,
-        eval_strategy="no",
+        logging_steps=log_steps,
+        eval_strategy="steps",
         save_strategy="steps",
         save_steps=save_steps,
+        eval_steps=eval_steps,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
+        prediction_loss_only=True
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
@@ -120,7 +124,7 @@ def train(bkt_upload=True,num_epochs=6,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
         eval_dataset=tokenized_datasets["valid"],
-        compute_metrics=compute_metrics,
+        compute_metrics=None,
         callbacks=[es_callback, gcs_callback],
     )
 
@@ -142,11 +146,12 @@ def train(bkt_upload=True,num_epochs=6,
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description="User Info CLI")
-    parser.add_argument("-epochs", "--epochs", type=int, help="Number of epochs", default=6)
-    parser.add_argument("-batch_size", "--batch_size", type=int, help="Number of train batches", default=8)
-    parser.add_argument("-accum_steps", "--accum_steps", type=int, help="grad accumulation steps", default=4)
-    parser.add_argument("-save_steps", "--save_steps", type=int, help="save steps", default=300)
-    
+    parser.add_argument("-e", "--epochs", type=int, help="Number of epochs", default=6)
+    parser.add_argument("-bs", "--batch_size", type=int, help="Number of train batches", default=8)
+    parser.add_argument("-as", "--accum_steps", type=int, help="grad accumulation steps", default=4)
+    parser.add_argument("-ss", "--save_steps", type=int, help="save steps", default=300)
+    parser.add_argument("-es", "--eval_steps", type=int, help="evaluation steps", default=300)
+    parser.add_argument("-ls", "--log_steps", type=int, help="logging steps", default=10)
     
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")
     args = parser.parse_args()
@@ -164,6 +169,8 @@ if __name__ == '__main__':
           batch_size=args.batch_size,
           grad_accum=args.accum_steps,
           save_steps=args.save_steps,
+          eval_steps=args.eval_steps,
+          log_steps=args.log_steps
         )
 
 
