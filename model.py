@@ -24,7 +24,7 @@ model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
 
 def tokenize_function(examples):
-    examples["text"] = [f"'{sentence}', emotion of the given text is [MASK]?" for sentence in examples["text"]]
+    examples["text"] = [f"The emotion in the text '{sentence}',is [MASK]?" for sentence in examples["text"]]
 
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
@@ -44,6 +44,7 @@ def tokenize_function(examples):
     return {"input_ids": batch_inputs["input_ids"].tolist(), 
             "attention_mask": batch_inputs["attention_mask"].tolist(), 
             "labels": labels.tolist()}
+    
 def tokenize():
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
 

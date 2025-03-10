@@ -38,6 +38,25 @@ def upload_checkpoints():
     print(f"Uploaded {Config.OUTPUT_DIR} to gs://{Config.OUTPUT_DIR}/{zip_file}")
 
 
+def get_tensor_memory(x):
+    return (x.nelement() * x.element_size()) / (1024 * 1024 * 1024)
+
+class Accuracy:
+    def __init__(self):
+        self.total_matches = 0
+        self.total_counts = 0
+
+    def add(self,preds, labels):
+        self.total_matches += torch.eq(preds, labels).sum().item()
+        self.total_counts += len(preds)
+
+    def compute(self):
+        return self.total_matches / self.total_counts
+        
+    def reset(self):
+        self.total_matches = 0  # Reset the total matches
+        self.total_counts = 0  # Reset the total counts
+
 class EarlyStoppingTrainingLossCallback(TrainerCallback):
     def __init__(self, patience=3, min_delta=0.01):
         self.patience = patience

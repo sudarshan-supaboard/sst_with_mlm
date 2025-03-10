@@ -1,13 +1,12 @@
-from typing import List
 import torch
 import pandas as pd
+
+from typing import List
 from config import Config
 from transformers import BertForMaskedLM, BertTokenizer
 from peft import peft_model
+from sklearn.metrics import accuracy_score
 from pprint import pprint
-
-from sklearn.metrics import accuracy_score, f1_score
-
 checkpoint_uri = "./checkpoints/checkpoint-6000"
 model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
 tokenizer = BertTokenizer.from_pretrained(Config.MODEL_PATH,
@@ -33,28 +32,17 @@ def predict(inputs: List[str]):
 
   # get top 5 words
   top_tokens = torch.topk(masked_token_logits, 5, dim=1).indices
-  
 
-  
-  top_words_1 = [tokenizer.decode([token]) for token in top_tokens[:,0]]
-  # top_words_2 = [tokenizer.decode([token]) for token in top_tokens[:,1]]
-  # top_words_3 = [tokenizer.decode([token]) for token in top_tokens[:,2]]
-  # top_words_4 = [tokenizer.decode([token]) for token in top_tokens[:,3]]
-  # top_words_5 = [tokenizer.decode([token]) for token in top_tokens[:,4]]
-  
+  top_words = [tokenizer.decode([token]) for token in top_tokens[:,0]]
 
-  return top_words_1
+  return top_words
 
 
 if __name__ == '__main__':
   df = pd.read_csv("./toy_store_test.csv")
   # df = df.iloc[:100]
-  preds_1 = []
-  # preds_2 = []
-  # preds_3 = []
-  # preds_4 = []
-  # preds_5 = []
-  
+
+  preds = []
   labels = []
   
   for i in range(0, len(df['review']), 8):
@@ -62,62 +50,16 @@ if __name__ == '__main__':
     print(f'predicting from {i}-{i+8}')
     inputs = []
     for j in df['review'].iloc[i:i+8]:
-      inputs.append(f"'{j}', emotion of the given text is [MASK]?")
+      inputs.append(f"The emotion in the text '{j}' is [MASK]?")
 
-    preds_1_ = predict(inputs)
-    
-    preds_1.extend(preds_1_)
-    # preds_2.extend(preds_2_)
-    # preds_3.extend(preds_3_)
-    # preds_4.extend(preds_4_)
-    # preds_5.extend(preds_5_)
+    preds.extend(predict(inputs))
     labels.extend(df['rating'].iloc[i:i+8].to_list())
     
-    
     if i % 64 == 0:
-      # print("1")
-      # print(accuracy_score(y_true=labels, y_pred=preds_1))
-      # print(f1_score(y_true=labels, y_pred=preds_1, average='weighted'))
+      print(accuracy_score(y_true=labels, y_pred=preds))
+      (pd.crosstab(labels, preds, normalize='index') * 100).to_csv("./confmat_toy.csv")
   
-      # print("\n2")
-      # print(accuracy_score(y_true=labels, y_pred=preds_2))
-      # print(f1_score(y_true=labels, y_pred=preds_2, average='weighted'))
-
-      # print("\n3")
-      # print(accuracy_score(y_true=labels, y_pred=preds_3))
-      # print(f1_score(y_true=labels, y_pred=preds_3, average='weighted'))
-
-      # print("\n4")
-      # print(accuracy_score(y_true=labels, y_pred=preds_4))
-      # print(f1_score(y_true=labels, y_pred=preds_4, average='weighted'))
-
-      # print("\n5")
-      # print(accuracy_score(y_true=labels, y_pred=preds_5))
-      # print(f1_score(y_true=labels, y_pred=preds_5, average='weighted'))
-      
-      (pd.crosstab(labels, preds_1, normalize='index') * 100).to_csv("./confmat_toy.csv")
   
-    
-    
-    
-  # print("1")
-  # print(accuracy_score(y_true=labels, y_pred=preds_1))
-  # print(f1_score(y_true=labels, y_pred=preds_1, average='weighted'))
-  
-  # print("\n2")
-  # print(accuracy_score(y_true=labels, y_pred=preds_2))
-  # print(f1_score(y_true=labels, y_pred=preds_2, average='weighted'))
-  
-  # print("\n3")
-  # print(accuracy_score(y_true=labels, y_pred=preds_3))
-  # print(f1_score(y_true=labels, y_pred=preds_3, average='weighted'))
-  
-  # print("\n4")
-  # print(accuracy_score(y_true=labels, y_pred=preds_4))
-  # print(f1_score(y_true=labels, y_pred=preds_4, average='weighted'))
-  
-  # print("\n5")
-  # print(accuracy_score(y_true=labels, y_pred=preds_5))
-  # print(f1_score(y_true=labels, y_pred=preds_5, average='weighted'))
-  (pd.crosstab(labels, preds_1, normalize='index') * 100).to_csv("./confmat_toy.csv")
+  print(accuracy_score(y_true=labels, y_pred=preds))
+  (pd.crosstab(labels, preds, normalize='index') * 100).to_csv("./confmat_toy.csv")
   

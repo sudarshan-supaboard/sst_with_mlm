@@ -2,8 +2,6 @@ import torch
 import torch.nn.functional as F
 import os
 import json
-import evaluate
-import numpy as np
 import wandb
 import argparse
 
@@ -13,9 +11,8 @@ from transformers import Trainer, TrainingArguments
 from model import model, tokenize
 from dotenv import load_dotenv
 from pprint import pprint
-from sklearn.metrics import accuracy_score, f1_score
 from config import Config
-from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, FreeMemoryCallback
+from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, Accuracy
 
 load_dotenv()
 
@@ -28,52 +25,33 @@ wandb_login(key=wandb_key)
 
 wandb.init(project=Config.PROJECT_NAME)
 # Load multiple metrics
-accuracy = evaluate.load("accuracy")
-f1 = evaluate.load("f1")
+accuracy = Accuracy()
 
-
-def compute_metrics(eval_pred):
+def compute_metrics(eval_pred, compute_result: bool):
+    global accuracy
     logits, labels = eval_pred
-
-    # Find the masked token positions
-    mask_token_indices = torch.where(labels != -100)
-
-    # Extract predicted token IDs at masked positions
-    preds = torch.argmax(torch.tensor(logits), dim=-1)
-    preds = preds[mask_token_indices]
-
-    # Extract true token IDs at masked positions
-    true_labels = torch.tensor(labels)[mask_token_indices]
-
-    # Convert to numpy for sklearn metrics
-    preds = preds.cpu()
-    true_labels = true_labels.cpu()
+    logits = torch.tensor(logits)
+    labels = torch.tensor(labels)
     
-    out = {
-        "accuracy":  accuracy.compute(predictions=preds, references=true_labels),
-        "f1": f1.compute(predictions=preds,references=true_labels)
-    }
+    logits = F.softmax(logits, dim=-1)
+    preds = torch.argmax(logits, dim=-1)
     
-    del preds, true_labels
+    accuracy.add(preds = preds, labels=labels)
     
-    pprint(out)
-    torch.cuda.empty_cache()
-    return out
+    if compute_result:
+        out = {
+                "accuracy": accuracy.compute()
+            }
+        accuracy.reset()
+        return out
+        
 
 
 class CustomTrainer(Trainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
-    ):
-        device = 'cpu'
-        
-        if isinstance(model, torch.nn.DataParallel):
-            device = model.module.device
-        
-        inputs = {k: v.to(device) for k, v in inputs.items()}
+    ): 
         labels = inputs.pop("labels")
-
-        
         
         outputs = model(**inputs)
         logits = outputs.logits
@@ -83,15 +61,39 @@ class CustomTrainer(Trainer):
         # get mask_token_ids of all inputs
         logits = logits[mask_token_indices[0], mask_token_indices[1], :]
         labels = labels[mask_token_indices[0], mask_token_indices[1]]
-        
-        print(f'logits.shape: {logits.shape}')
-        print(f'labels.shape: {labels.shape}')
+               
         loss = F.cross_entropy(logits, labels)
+
+        return (loss, logits) if return_outputs else loss
+
+    def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
+
+        inputs = self._prepare_inputs(inputs)
         
-        return (loss, outputs) if return_outputs else loss
+        with torch.no_grad():
+            outputs = model(**inputs)
+            
+
+        labels = inputs.get('labels')
+        
+        # Extract logits (model predictions)
+        logits = outputs.logits
+        mask_token_indices = torch.where(labels != -100)
+        
+        # get mask_token_ids of all inputs
+        logits = logits[mask_token_indices[0], mask_token_indices[1], :]
+        labels = labels[mask_token_indices[0], mask_token_indices[1]] # type: ignore
+        
+        loss = F.cross_entropy(logits, labels)
+
+        if prediction_loss_only:
+            return (loss)
+        
+        return (loss, logits, labels)
 
 
-def train(bkt_upload=True,num_epochs=6,
+def train(bkt_upload=True,
+          num_epochs=6,
           batch_size=8,
           grad_accum=4,
           save_steps=300,
@@ -111,7 +113,7 @@ def train(bkt_upload=True,num_epochs=6,
         per_device_eval_batch_size=eval_batch,
         warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
         learning_rate=5e-5,
-        weight_decay=0.01,  # strength of weight decay
+        weight_decay=0.1,  # strength of weight decay
         logging_dir="./logs",  # directory for storing logs
         logging_steps=log_steps,
         eval_strategy="steps",
@@ -121,18 +123,22 @@ def train(bkt_upload=True,num_epochs=6,
         save_total_limit=4,
         report_to="wandb",
         bf16=True,
-        eval_accumulation_steps=4
+        remove_unused_columns=False,
+        batch_eval_metrics=True,
+        load_best_model_at_end=True,
+        metric_for_best_model="accuracy",
+        greater_is_better=True
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
     gcs_callback = GCSUploadCallback(bkt_upload=bkt_upload)
-    fm_callback = FreeMemoryCallback()
-    trainer = Trainer(
+
+    trainer = CustomTrainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
         eval_dataset=tokenized_datasets["valid"],
-        compute_metrics=compute_metrics,
+        compute_metrics=compute_metrics, # type: ignore
         callbacks=[es_callback, gcs_callback],
     )
 
