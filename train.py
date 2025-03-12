@@ -51,6 +51,8 @@ class CustomTrainer(Trainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ): 
+        if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+            print("DistributedDataParallel")
         labels = inputs.pop("labels")
         
         outputs = model(**inputs)
@@ -68,12 +70,11 @@ class CustomTrainer(Trainer):
 
     def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
 
-        inputs = self._prepare_inputs(inputs)
+        # inputs = self._prepare_inputs(inputs)
         
         with torch.no_grad():
             outputs = model(**inputs)
             
-
         labels = inputs.get('labels')
         
         # Extract logits (model predictions)
@@ -105,7 +106,6 @@ def train(bkt_upload=True,
     tokenized_datasets = tokenize()
 
     training_args = TrainingArguments(
-        run_name=Config.PROJECT_NAME,
         output_dir=Config.OUTPUT_DIR,  # output directory
         num_train_epochs=num_epochs,  # total number of training epochs
         per_device_train_batch_size=batch_size,  # batch size per device during training
@@ -160,13 +160,13 @@ def train(bkt_upload=True,
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description="User Info CLI")
-    parser.add_argument("-e", "--epochs", type=int, help="Number of epochs", default=6)
+    parser.add_argument("-e", "--epochs", type=int, help="Number of epochs", default=3)
     parser.add_argument("-bs", "--batch_size", type=int, help="Number of train batches", default=8)
     parser.add_argument("-as", "--accum_steps", type=int, help="grad accumulation steps", default=4)
     parser.add_argument("-ss", "--save_steps", type=int, help="save steps", default=300)
     parser.add_argument("-es", "--eval_steps", type=int, help="evaluation steps", default=300)
     parser.add_argument("-ls", "--log_steps", type=int, help="logging steps", default=10)
-    parser.add_argument("-eb", "--eval_batch", type=int, help="evaluation batch size", default=4)
+    parser.add_argument("-eb", "--eval_batch", type=int, help="evaluation batch size", default=32)
     
     
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")

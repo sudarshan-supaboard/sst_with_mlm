@@ -24,7 +24,7 @@ model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
 
 def tokenize_function(examples):
-    examples["text"] = [f"The emotion in the text '{sentence}',is [MASK]?" for sentence in examples["text"]]
+    examples["text"] = [f"You predict emotion of the given text. Don't predict stopwords, special characters and punctuation. The emotion of the text \"{sentence}\" is [MASK]?." for sentence in examples["text"]]
 
     batch_inputs = tokenizer(examples["text"], padding="max_length",
                              truncation=True, return_tensors="pt")
