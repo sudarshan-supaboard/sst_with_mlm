@@ -29,7 +29,6 @@ accuracy = Accuracy()
 
 def compute_metrics(eval_pred, compute_result: bool):
 
-    print(f"Compute metrics Rank: {get_rank()}")
     global accuracy
     logits, labels = eval_pred
     logits = logits.clone().detach().cpu()
@@ -53,7 +52,6 @@ class CustomTrainer(Trainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ): 
-        print(f"Compute Loss Rank: {get_rank()}")
         
         labels = inputs.pop("labels")
         
@@ -72,7 +70,6 @@ class CustomTrainer(Trainer):
 
     def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
 
-        print(f"Prediction Step Rank: {get_rank()}")
         
         with torch.no_grad():
             outputs = model(**inputs)
@@ -131,7 +128,7 @@ def train(bkt_upload=True,
         metric_for_best_model="accuracy",
         greater_is_better=True,
         ddp_find_unused_parameters=False,
-        ddp_backend="nccl"
+        # ddp_backend="nccl"
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
