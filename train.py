@@ -29,6 +29,8 @@ accuracy = Accuracy()
 
 def compute_metrics(eval_pred, compute_result: bool):
     # get the device
+    print(type(eval_pred))
+    print(type(eval_pred[0]))
     
     device = eval_pred[0].device
     print(f"compute_metrics_device: {device}")
@@ -79,7 +81,12 @@ class CustomTrainer(Trainer):
     def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
 
         # inputs = self._prepare_inputs(inputs)
-        
+        # get device of the model
+        if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+            # get the device of the model
+            device = model.module.device
+            print(f"prediction_step_device: {device}")
+            
         with torch.no_grad():
             outputs = model(**inputs)
             
