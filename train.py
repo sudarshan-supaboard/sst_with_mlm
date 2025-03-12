@@ -28,6 +28,11 @@ wandb.init(project=Config.PROJECT_NAME)
 accuracy = Accuracy()
 
 def compute_metrics(eval_pred, compute_result: bool):
+    # get the device
+    
+    device = eval_pred[0].device
+    print(f"compute_metrics_device: {device}")
+    
     global accuracy
     logits, labels = eval_pred
     logits = torch.tensor(logits)
@@ -52,7 +57,10 @@ class CustomTrainer(Trainer):
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ): 
         if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-            print("DistributedDataParallel")
+            # get the device of the model
+            device = model.module.device
+            print(f"compute_loss_device: {device}")
+            
         labels = inputs.pop("labels")
         
         outputs = model(**inputs)
