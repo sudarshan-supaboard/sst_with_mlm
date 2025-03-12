@@ -37,13 +37,13 @@ def compute_metrics(eval_pred, compute_result: bool):
     
     global accuracy
     logits, labels = eval_pred
-    logits = torch.tensor(logits)
-    labels = torch.tensor(labels)
+    logits = logits.clone().detach().cpu()
+    labels = labels.clone().detach().cpu()
     
     logits = F.softmax(logits, dim=-1)
     preds = torch.argmax(logits, dim=-1)
     
-    accuracy.add(preds = preds, labels=labels)
+    accuracy.add(preds = preds.cpu(), labels=labels.cpu())
     
     if compute_result:
         out = {
@@ -82,6 +82,9 @@ class CustomTrainer(Trainer):
 
         # inputs = self._prepare_inputs(inputs)
         # get device of the model
+        print(f"prediction_step: {type(model)}")
+        print(f"prediction_step: {model.device}")
+        
         if isinstance(model, torch.nn.parallel.DistributedDataParallel):
             # get the device of the model
             device = model.module.device
