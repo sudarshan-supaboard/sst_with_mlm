@@ -12,7 +12,7 @@ from model import model, tokenize
 from dotenv import load_dotenv
 from pprint import pprint
 from config import Config
-from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, Accuracy
+from utils import GCSUploadCallback, EarlyStoppingTrainingLossCallback, Accuracy, get_rank
 
 load_dotenv()
 
@@ -28,13 +28,8 @@ wandb.init(project=Config.PROJECT_NAME)
 accuracy = Accuracy()
 
 def compute_metrics(eval_pred, compute_result: bool):
-    # get the device
-    print(type(eval_pred))
-    print(type(eval_pred[0]))
-    
-    device = eval_pred[0].device
-    print(f"compute_metrics_device: {device}")
-    
+
+    print(f"Compute metrics Rank: {get_rank()}")
     global accuracy
     logits, labels = eval_pred
     logits = logits.clone().detach().cpu()
@@ -58,11 +53,8 @@ class CustomTrainer(Trainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ): 
-        if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-            # get the device of the model
-            device = model.module.device
-            print(f"compute_loss_device: {device}")
-            
+        print(f"Compute Loss Rank: {get_rank()}")
+        
         labels = inputs.pop("labels")
         
         outputs = model(**inputs)
@@ -80,16 +72,8 @@ class CustomTrainer(Trainer):
 
     def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
 
-        # inputs = self._prepare_inputs(inputs)
-        # get device of the model
-        print(f"prediction_step: {type(model)}")
-        print(f"prediction_step: {model.device}")
+        print(f"Prediction Step Rank: {get_rank()}")
         
-        if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-            # get the device of the model
-            device = model.module.device
-            print(f"prediction_step_device: {device}")
-            
         with torch.no_grad():
             outputs = model(**inputs)
             
@@ -140,13 +124,14 @@ def train(bkt_upload=True,
         eval_steps=eval_steps,
         save_total_limit=4,
         report_to="wandb",
-        bf16=True,
+        fp16=True,
         remove_unused_columns=False,
         batch_eval_metrics=True,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
         greater_is_better=True,
-        ddp_find_unused_parameters=False
+        ddp_find_unused_parameters=False,
+        ddp_backend="nccl"
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)

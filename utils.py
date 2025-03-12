@@ -3,10 +3,16 @@ import gc
 import shutil
 import os
 import GPUtil
+import torch.distributed as dist
 
 from transformers import TrainerCallback
 from google.cloud import storage
 from config import Config
+
+def get_rank():
+    if dist.is_initialized():
+        return dist.get_rank()
+    return 0 
 
 def clear_cache():
   torch.cuda.empty_cache()  # Free unused memory
