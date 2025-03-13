@@ -24,7 +24,10 @@ valid_df = pd.read_csv(valid_path)
 templates = [
     'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. The emotion of the text "{}" is [MASK]?.',
     'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. Given the text "{}", predict the emotion contained in it [MASK]?.',
-    'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. "{}", the emotino contained in the text is [MASK]?.',
+    'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. "{}", the emotion contained in the text is [MASK]?.',
+    'You predict sentiment of the given text. Don\'t predict stopwords, special characters and punctuation. "{}", the sentiment of the given text is [MASK]?.',
+    'You predict sentiment of the given text. Don\'t predict stopwords, special characters and punctuation. The sentiment of the text "{}" is [MASK]?.',
+    'You predict sentiment of the given text. Don\'t predict stopwords, special characters and punctuation. Given the text "{}", predict the sentiment contained in it [MASK]?.',
 ]
 
 new_train_df = []
