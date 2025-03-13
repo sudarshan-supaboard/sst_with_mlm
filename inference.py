@@ -9,7 +9,7 @@ from pprint import pprint
 
 from sklearn.metrics import accuracy_score
 
-checkpoint_uri = "./checkpoints/checkpoint-4500"
+checkpoint_uri = "./checkpoints/checkpoint-2100"
 model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
 tokenizer = BertTokenizer.from_pretrained(
     Config.MODEL_PATH, do_lower_case=True, strip_accents=True
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         for j in df["review"].iloc[i : i + 8]:
             a = f"""
             You predict emotion of the given text. Don't predict stopwords, special characters and punctuations.
-            The emotion in the text \"{j}\" is [MASK]?   
+            The emotion of the text \"{j}\" is [MASK]?   
           """
             inputs.append(a)
 

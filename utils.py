@@ -63,6 +63,28 @@ class Accuracy:
         self.total_matches = 0  # Reset the total matches
         self.total_counts = 0  # Reset the total counts
 
+class AverageAccuracy:
+    def __init__(self) -> None:
+        self.total_matches = 0
+        self.total_counts = 0
+    
+    def add(self, logits, labels):
+        preds = torch.topk(logits, 5, dim=-1).indices
+        print(preds)
+        self.total_matches += torch.eq(preds[:, 0], labels).sum().item()
+        self.total_matches += torch.eq(preds[:, 1], labels).sum().item() * 0.8
+        self.total_matches += torch.eq(preds[:, 2], labels).sum().item() * 0.6
+        self.total_matches += torch.eq(preds[:, 3], labels).sum().item() * 0.4
+        self.total_matches += torch.eq(preds[:, 4], labels).sum().item() * 0.2
+        self.total_counts += len(labels)
+        
+    def compute(self):
+        return self.total_matches / self.total_counts
+    
+    def reset(self):
+        self.total_matches = 0
+        self.total_counts = 0
+    
 class EarlyStoppingTrainingLossCallback(TrainerCallback):
     def __init__(self, patience=3, min_delta=0.01):
         self.patience = patience
@@ -128,3 +150,18 @@ class GCSUploadCallback(TrainerCallback):
 class FreeMemoryCallback(TrainerCallback):
     def on_evaluate(self, args, state, control, **kwargs):
         clear_cache()
+
+if __name__ == '__main__':
+    acc = AverageAccuracy()
+    acc1 = Accuracy()
+    logits = torch.tensor([[0.1, 0.2, 0.3, 0.4, 0.5], [0.1, 0.2, 0.3, 0.4, 0.5]])
+    labels = torch.tensor([4, 2])
+    acc.add(logits, labels)
+    
+    acc1.add(torch.argmax(logits, dim=-1), labels)
+    
+    print(acc.compute())
+    acc.reset()
+    
+    print(acc1.compute())
+    acc1.reset()

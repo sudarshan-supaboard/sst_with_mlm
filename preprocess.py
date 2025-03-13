@@ -21,6 +21,33 @@ train_df = pd.read_csv(train_path)
 test_df = pd.read_csv(test_path)
 valid_df = pd.read_csv(valid_path)
 
+templates = [
+    'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. The emotion of the text "{}" is [MASK]?.',
+    'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. Given the text "{}", predict the emotion contained in it [MASK]?.',
+    'You predict emotion of the given text. Don\'t predict stopwords, special characters and punctuation. "{}", the emotino contained in the text is [MASK]?.',
+]
+
+new_train_df = []
+new_test_df = []
+new_valid_df = []
+
+for i in range(len(train_df)):
+    for template in templates:
+        new_train_df.append({'text': template.format(train_df['text'][i]), 'label': train_df['label'][i]})
+
+for i in range(len(test_df)):
+    for template in templates:
+        new_test_df.append({'text': template.format(test_df['text'][i]), 'label': test_df['label'][i]})
+
+for i in range(len(valid_df)):
+    for template in templates:
+        new_valid_df.append({'text': template.format(valid_df['text'][i]), 'label': valid_df['label'][i]})
+
+
+train_df = pd.DataFrame(new_train_df)
+test_df = pd.DataFrame(new_test_df)
+valid_df = pd.DataFrame(new_valid_df)
+
 # shuffle the train_df
 train_df = train_df.sample(frac=1, random_state=Config.RANDOM_STATE, ignore_index=True)
 test_df = test_df.sample(frac = 1, random_state=Config.RANDOM_STATE, ignore_index=True)
