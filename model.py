@@ -25,9 +25,8 @@ model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
 
 
-def tokenize_function(examples, template: str):
-    examples["text"] = [template.format(sentence) for sentence in examples["text"]]
-
+def tokenize_function(examples):
+    # Tokenize the text
     batch_inputs = tokenizer(
         examples["text"], padding="max_length", truncation=True, return_tensors="pt"
     )
