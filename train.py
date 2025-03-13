@@ -200,7 +200,6 @@ if __name__ == "__main__":
         bkt_upload = True
     else:
         print(f"bucket upload disabled")
-
     train(
         model=args.model,
         bkt_upload=bkt_upload,

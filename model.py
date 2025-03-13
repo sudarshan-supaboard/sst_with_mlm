@@ -4,7 +4,7 @@ from transformers import BertForMaskedLM, BertTokenizer
 from transformers import RobertaTokenizer, RobertaForMaskedLM
 from config import Config
 from peft import LoraConfig, get_peft_model  # type: ignore
-from preprocess import dataset
+from preprocess import make_dataset
 
 def get_model(model_name: str):
     model = None
@@ -19,6 +19,10 @@ def get_model(model_name: str):
             Config.MODEL_PATH, do_lower_case=True, strip_accents=True
         )
     elif model_name == "roberta":
+        Config.set_roberta_model()
+        print(f'Model: {model_name} | Model Path: {Config.MODEL_PATH}')
+        print(f'Output Dir: {Config.OUTPUT_DIR}')
+        
         model = RobertaForMaskedLM.from_pretrained(Config.MODEL_PATH)
         tokenizer = RobertaTokenizer.from_pretrained(
             Config.MODEL_PATH, do_lower_case=True, strip_accents=True
@@ -46,14 +50,16 @@ def get_model(model_name: str):
 def tokenize_function(examples, tokenizer):
     # Tokenize the text
     batch_inputs = tokenizer(
-        examples["text"], padding="max_length", truncation=True, return_tensors="pt"
+        examples["text"], padding=True, truncation=True, max_length=512, return_tensors="pt"
     )
+
     # Convert labels (words) to token IDs
     label_token_ids = torch.tensor(
         [tokenizer.convert_tokens_to_ids(label) for label in examples["label"]],
         dtype=torch.long,
     )
 
+    
     # Create labels tensor with -100 (ignored in loss)
     labels = torch.full_like(batch_inputs["input_ids"], fill_value=-100)
 
@@ -61,6 +67,7 @@ def tokenize_function(examples, tokenizer):
     mask_token_indices = torch.where(
         batch_inputs["input_ids"] == tokenizer.mask_token_id
     )
+    
 
     # Place the correct label token ID at the [MASK] position
     labels[mask_token_indices] = label_token_ids
@@ -74,7 +81,8 @@ def tokenize_function(examples, tokenizer):
 
 
 def tokenize(tokenizer):
-
+    dataset = make_dataset()
+    
     tokenized_datasets = dataset.map(
         tokenize_function, batched=True, remove_columns=["text", "label"], fn_kwargs={"tokenizer": tokenizer}
     )
@@ -95,7 +103,17 @@ if __name__ == "__main__":
     # pprint(model)
     # model.print_trainable_parameters()
     # pprint(tokenized_datasets['train'][:10])
-    model, tokenizer = get_model("bert")
-    tokenized_datasets = tokenize(tokenizer)
+    model, tokenizer = get_model("roberta")
+    
+    inputs = tokenizer(["Hello, my dog is cute, <mask>","<mask>"], return_tensors="pt",
+                       padding="max_length", 
+                       truncation=True)
+    pprint(inputs['input_ids'][0])
+    
+    masked_token_ids = torch.where(inputs["input_ids"] == tokenizer.mask_token_id)
+    print(masked_token_ids)
+    print(masked_token_ids[0].shape)
+    print(masked_token_ids[1].shape)
+    # tokenized_datasets = tokenize(tokenizer)
 
-    print(tokenized_datasets)
+    # print(tokenized_datasets)

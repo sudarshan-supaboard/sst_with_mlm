@@ -8,6 +8,7 @@ class Config:
     DATASET_PATH="sudarshan1927/go-emotions-and-generated"
     RANDOM_STATE=42
     PROJECT_NAME="sst_with_mlm"
+    MASK_TOKEN="[MASK]"
    
     @classmethod
     def device(cls):
@@ -17,10 +18,12 @@ class Config:
     def set_roberta_model(cls):
         cls.MODEL_PATH  = "FacebookAI/roberta-base"
         cls.OUTPUT_DIR = "roberta_checkpoints"
+        cls.MASK_TOKEN = "<mask>"
     
     @classmethod
     def set_bert_model(cls):
         cls.MODEL_PATH = "google-bert/bert-base-uncased"
         cls.OUTPUT_DIR = "bert_checkpoints"
+        cls.MASK_TOKEN = "[MASK]"
     
     
