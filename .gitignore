@@ -6,6 +6,8 @@
 *.csv
 *.zip
 *.ipynb
+*.log
+
 wandb
 results
 checkpoints

@@ -140,7 +140,7 @@ def train(
         metric_for_best_model="accuracy",
         greater_is_better=True,
         ddp_find_unused_parameters=False,
-        ddp_backend="nccl",
+        # ddp_backend="nccl",
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
