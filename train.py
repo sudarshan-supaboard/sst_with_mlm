@@ -121,7 +121,7 @@ def train(
         per_device_train_batch_size=batch_size,  # batch size per device during training
         gradient_accumulation_steps=grad_accum,
         per_device_eval_batch_size=eval_batch,
-        lr_scheduler_type="cosine_with_restarts",
+        lr_scheduler_type="linear",
         warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
         learning_rate=5e-5,
         weight_decay=0.1,  # strength of weight decay
@@ -140,7 +140,7 @@ def train(
         metric_for_best_model="accuracy",
         greater_is_better=True,
         ddp_find_unused_parameters=False,
-        # ddp_backend="nccl",
+        ddp_backend="nccl",
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
