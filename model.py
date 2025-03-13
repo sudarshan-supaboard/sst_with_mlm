@@ -50,7 +50,7 @@ def get_model(model_name: str):
 def tokenize_function(examples, tokenizer):
     # Tokenize the text
     batch_inputs = tokenizer(
-        examples["text"], padding=True, truncation=True, max_length=512, return_tensors="pt"
+        examples["text"], padding="max_length", truncation=True, max_length=512, return_tensors="pt"
     )
 
     # Convert labels (words) to token IDs
