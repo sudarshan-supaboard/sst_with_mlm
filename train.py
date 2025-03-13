@@ -8,7 +8,7 @@ import argparse
 from huggingface_hub import login as hf_login
 from wandb import login as wandb_login
 from transformers import Trainer, TrainingArguments
-from model import model, tokenize
+from model import get_model, tokenize
 from dotenv import load_dotenv
 from pprint import pprint
 from config import Config
@@ -102,6 +102,7 @@ class CustomTrainer(Trainer):
 
 
 def train(
+    model,
     bkt_upload=True,
     num_epochs=6,
     batch_size=8,
@@ -111,8 +112,8 @@ def train(
     log_steps=10,
     eval_batch=4,
 ):
-
-    tokenized_datasets = tokenize()
+    model, tokenizer = get_model(model)
+    tokenized_datasets = tokenize(tokenizer)
 
     training_args = TrainingArguments(
         output_dir=Config.OUTPUT_DIR,  # output directory
@@ -171,6 +172,7 @@ def train(
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="User Info CLI")
+    parser.add_argument("-m", "--model", type=str, help="Model name", default="bert", choices=["bert", "roberta"])
     parser.add_argument("-e", "--epochs", type=int, help="Number of epochs", default=3)
     parser.add_argument(
         "-bs", "--batch_size", type=int, help="Number of train batches", default=8
@@ -200,6 +202,7 @@ if __name__ == "__main__":
         print(f"bucket upload disabled")
 
     train(
+        model=args.model,
         bkt_upload=bkt_upload,
         num_epochs=args.epochs,
         batch_size=args.batch_size,

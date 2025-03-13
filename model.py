@@ -1,31 +1,49 @@
 import torch
-import datasets
 
 from transformers import BertForMaskedLM, BertTokenizer
+from transformers import RobertaTokenizer, RobertaForMaskedLM
 from config import Config
 from peft import LoraConfig, get_peft_model  # type: ignore
 from preprocess import dataset
 
-model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
-tokenizer = BertTokenizer.from_pretrained(
-    Config.MODEL_PATH, do_lower_case=True, strip_accents=True
-)
+def get_model(model_name: str):
+    model = None
+    tokenizer = None
+    if model_name == "bert":
+        Config.set_bert_model()
+        print(f'Model: {model_name} | Model Path: {Config.MODEL_PATH}')
+        print(f'Output Dir: {Config.OUTPUT_DIR}')
+        
+        model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
+        tokenizer = BertTokenizer.from_pretrained(
+            Config.MODEL_PATH, do_lower_case=True, strip_accents=True
+        )
+    elif model_name == "roberta":
+        model = RobertaForMaskedLM.from_pretrained(Config.MODEL_PATH)
+        tokenizer = RobertaTokenizer.from_pretrained(
+            Config.MODEL_PATH, do_lower_case=True, strip_accents=True
+        )
+    else:
+        raise ValueError("Invalid model name")
+    
 
-lora_config = LoraConfig(
-    r=8,  # Rank
-    lora_alpha=16,
-    target_modules=["query", "value", "key"],
-    lora_dropout=0.1,
-    bias="none",
-)
+    lora_config = LoraConfig(
+        r=8,  # Rank
+        lora_alpha=16,
+        target_modules=["query", "value", "key"],
+        lora_dropout=0.1,
+        bias="none",
+    )
 
 
-# Apply LoRA using PEFT
-model = get_peft_model(model, lora_config)
-model.print_trainable_parameters()
+    # Apply LoRA using PEFT
+    model = get_peft_model(model, lora_config)
+    model.print_trainable_parameters()
+    
+    return model, tokenizer
 
 
-def tokenize_function(examples):
+def tokenize_function(examples, tokenizer):
     # Tokenize the text
     batch_inputs = tokenizer(
         examples["text"], padding="max_length", truncation=True, return_tensors="pt"
@@ -55,10 +73,10 @@ def tokenize_function(examples):
     }
 
 
-def tokenize():
+def tokenize(tokenizer):
 
     tokenized_datasets = dataset.map(
-        tokenize_function, batched=True, remove_columns=["text", "label"]
+        tokenize_function, batched=True, remove_columns=["text", "label"], fn_kwargs={"tokenizer": tokenizer}
     )
 
     tokenized_datasets.set_format(  # type: ignore
@@ -77,6 +95,7 @@ if __name__ == "__main__":
     # pprint(model)
     # model.print_trainable_parameters()
     # pprint(tokenized_datasets['train'][:10])
-    tokenized_datasets = tokenize()
+    model, tokenizer = get_model("bert")
+    tokenized_datasets = tokenize(tokenizer)
 
     print(tokenized_datasets)

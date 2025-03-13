@@ -4,45 +4,64 @@ import pandas as pd
 from typing import List
 from config import Config
 from transformers import BertForMaskedLM, BertTokenizer
+from transformers import RobertaForMaskedLM, RobertaTokenizer
 from peft import peft_model
 from pprint import pprint
 
 from sklearn.metrics import accuracy_score
 
-checkpoint_uri = "./checkpoints/checkpoint-2100"
-model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
-tokenizer = BertTokenizer.from_pretrained(
-    Config.MODEL_PATH, do_lower_case=True, strip_accents=True
-)
+def get_model(model_name: str, checkpoint_name: str):
+    
+    model = None
+    tokenizer = None
+    if model_name == "bert":
+        Config.set_bert_model()
+        model = BertForMaskedLM.from_pretrained(Config.MODEL_PATH)
+        tokenizer = BertTokenizer.from_pretrained(
+            Config.MODEL_PATH, do_lower_case=True, strip_accents=True)
+        checkpoint_uri = f"./{Config.OUTPUT_DIR}/{checkpoint_name}"
+        model = peft_model.PeftModelForSequenceClassification.from_pretrained(
+            model, checkpoint_uri
+        )
+        model.eval()
 
-model = peft_model.PeftModelForSequenceClassification.from_pretrained(
-    model, checkpoint_uri
-)
-model.eval()
+    elif model_name == "roberta":
+        model = RobertaForMaskedLM.from_pretrained(Config.MODEL_PATH)
+        tokenizer = RobertaTokenizer.from_pretrained(
+            Config.MODEL_PATH, do_lower_case=True, strip_accents=True)
+        checkpoint_uri = f"./{Config.OUTPUT_DIR}/{checkpoint_name}"
+        model = peft_model.PeftModelForSequenceClassification.from_pretrained(
+            model, checkpoint_uri
+        )
+        model.eval()
+
+    return model, tokenizer
+
 
 
 def predict(inputs: List[str]):
-
+    model, tokenizer = get_model("bert", "checkpoint-2100")
+    
     # tokenize the text
     input_ids = tokenizer(
         inputs, return_tensors="pt", padding="max_length", truncation=True
-    )
+    ) # type: ignore
 
     # get the logits
     with torch.no_grad():
         logits = model(
             input_ids=input_ids["input_ids"], attention_mask=input_ids["attention_mask"]
-        ).logits
+        ).logits # type: ignore
 
     # extract masked_token_id
-    masked_token_id = tokenizer.mask_token_id
+    masked_token_id = tokenizer.mask_token_id # type: ignore
 
     masked_token_logits = logits[:, masked_token_id, :]
 
     # get top 5 words
     top_tokens = torch.topk(masked_token_logits, 5, dim=1).indices
 
-    top_words = [tokenizer.decode([token]) for token in top_tokens[:, 0]]
+    top_words = [tokenizer.decode([token]) for token in top_tokens[:, 0]] # type: ignore
 
     return top_words
 
