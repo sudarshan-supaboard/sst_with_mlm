@@ -70,7 +70,6 @@ class AverageAccuracy:
     
     def add(self, logits, labels):
         preds = torch.topk(logits, 5, dim=-1).indices
-        print(preds)
         self.total_matches += torch.eq(preds[:, 0], labels).sum().item()
         self.total_matches += torch.eq(preds[:, 1], labels).sum().item() * 0.8
         self.total_matches += torch.eq(preds[:, 2], labels).sum().item() * 0.6
