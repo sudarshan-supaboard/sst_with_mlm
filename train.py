@@ -103,14 +103,15 @@ class CustomTrainer(Trainer):
 
 def train(
     model,
-    bkt_upload=True,
-    num_epochs=6,
-    batch_size=8,
-    grad_accum=4,
-    save_steps=300,
-    eval_steps=300,
-    log_steps=10,
-    eval_batch=4,
+    bkt_upload,
+    num_epochs,
+    batch_size,
+    grad_accum,
+    save_steps,
+    eval_steps,
+    log_steps,
+    eval_batch,
+    weight_decay,
 ):
     model, tokenizer = get_model(model)
     tokenized_datasets = tokenize(tokenizer)
@@ -124,7 +125,7 @@ def train(
         lr_scheduler_type="linear",
         warmup_ratio=0.1,  # number of warmup steps for learning rate scheduler
         learning_rate=5e-5,
-        weight_decay=0.1,  # strength of weight decay
+        weight_decay=weight_decay,  # strength of weight decay
         logging_dir="./logs",  # directory for storing logs
         logging_steps=log_steps,
         eval_strategy="steps",
@@ -144,7 +145,11 @@ def train(
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
-    gcs_callback = GCSUploadCallback(bucket_name=Config.BUCKET_NAME, bkt_upload=bkt_upload, checkpoint_dir=Config.OUTPUT_DIR)
+    gcs_callback = GCSUploadCallback(
+        bucket_name=Config.BUCKET_NAME,
+        bkt_upload=bkt_upload,
+        checkpoint_dir=Config.OUTPUT_DIR,
+    )
 
     trainer = CustomTrainer(
         model=model,
@@ -172,7 +177,14 @@ def train(
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="User Info CLI")
-    parser.add_argument("-m", "--model", type=str, help="Model name", default="bert", choices=["bert", "roberta"])
+    parser.add_argument(
+        "-m",
+        "--model",
+        type=str,
+        help="Model name",
+        default="bert",
+        choices=["bert", "roberta"],
+    )
     parser.add_argument("-e", "--epochs", type=int, help="Number of epochs", default=3)
     parser.add_argument(
         "-bs", "--batch_size", type=int, help="Number of train batches", default=8
@@ -190,7 +202,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-eb", "--eval_batch", type=int, help="evaluation batch size", default=32
     )
-
+    parser.add_argument(
+        "-wd", "--weight_decay", type=float, help="weight decay", default=0.1
+    )
     parser.add_argument("-u", "--upload", action="store_true", help="Enable uploads")
     args = parser.parse_args()
 
@@ -200,6 +214,8 @@ if __name__ == "__main__":
         bkt_upload = True
     else:
         print(f"bucket upload disabled")
+
+    pprint(args)
     train(
         model=args.model,
         bkt_upload=bkt_upload,
@@ -210,4 +226,5 @@ if __name__ == "__main__":
         eval_steps=args.eval_steps,
         log_steps=args.log_steps,
         eval_batch=args.eval_batch,
+        weight_decay=args.weight_decay,
     )
