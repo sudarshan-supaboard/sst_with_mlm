@@ -144,7 +144,7 @@ def train(
     )
 
     es_callback = EarlyStoppingTrainingLossCallback(patience=3)
-    gcs_callback = GCSUploadCallback(bkt_upload=bkt_upload)
+    gcs_callback = GCSUploadCallback(bucket_name=Config.BUCKET_NAME, bkt_upload=bkt_upload, checkpoint_dir=Config.OUTPUT_DIR)
 
     trainer = CustomTrainer(
         model=model,

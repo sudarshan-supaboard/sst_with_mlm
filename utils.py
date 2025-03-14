@@ -112,7 +112,7 @@ class EarlyStoppingTrainingLossCallback(TrainerCallback):
 
 
 class GCSUploadCallback(TrainerCallback):
-    def __init__(self, bucket_name=Config.BUCKET_NAME, checkpoint_dir=Config.OUTPUT_DIR, bkt_upload=True):
+    def __init__(self, bucket_name: str, checkpoint_dir: str, bkt_upload: bool):
         self.bucket_name = bucket_name
         self.checkpoint_dir = checkpoint_dir  # Local directory where checkpoints are saved
         self.storage_client = storage.Client(project=Config.PROJECT_ID)
