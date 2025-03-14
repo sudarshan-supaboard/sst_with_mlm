@@ -11,3 +11,5 @@
 wandb
 results
 checkpoints
+bert_checkpoints
+roberta_checkpoints

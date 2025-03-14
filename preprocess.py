@@ -35,15 +35,15 @@ def make_dataset():
         Template(
             "You predict emotion of the given text. Don't predict stopwords, special characters and punctuation. '$input', the emotion contained in the text is $mask?."
         ),
-        Template(
-            "You predict sentiment of the given text. Don't predict stopwords, special characters and punctuation. '$input', the sentiment of the given text is $mask?."
-        ),
-        Template(
-            "You predict sentiment of the given text. Don't predict stopwords, special characters and punctuation. The sentiment of the text '$input' is $mask?."
-        ),
-        Template(
-            "You predict sentiment of the given text. Don't predict stopwords, special characters and punctuation. Given the text '$input', predict the sentiment contained in it $mask?."
-        ),
+        # Template(
+        #     "You predict sentiment of the given text. Don't predict stopwords, special characters and punctuation. '$input', the sentiment of the given text is $mask?."
+        # ),
+        # Template(
+        #     "You predict sentiment of the given text. Don't predict stopwords, special characters and punctuation. The sentiment of the text '$input' is $mask?."
+        # ),
+        # Template(
+        #     "You predict sentiment of the given text. Don't predict stopwords, special characters and punctuation. Given the text '$input', predict the sentiment contained in it $mask?."
+        # ),
     ]
 
     new_train_df = []
